@@ -161,6 +161,12 @@ class PatchSearch:
             for pro in pros:
                 print >> f, pro
 
+        with lt.open_file(file_suffix='hotspot') as f:
+            for pro in pros:
+                hotspot = self.hotspots[pro]
+                print >> f, '{0:<20}{1}'.format(
+                    pro, ' '.join(hotspot))
+
         sta = [(len(pros), shape, patch, pros) for shape, patch_pros in self.shape_patch_pros.iteritems()
                for patch, pros in patch_pros.iteritems() if len(pros) >= self.cutoff]
         sta = sorted(sta, reverse=True)
@@ -170,6 +176,8 @@ class PatchSearch:
                     len_pros, shape, patch,','.join(pros))
 
         for len_pros, shape, patch, pros in sta:
+            # do not output these
+            break
             dir_name = str(len_pros) + '_' + shape + '_' + patch
 
             with lt.open_file(file_name=dir_name,file_suffix='hotspot', inner_dir=dir_name) as f:
@@ -204,7 +212,6 @@ class PatchSearch:
                 sta_dic[patch_m].append((len_pros,shape,patch))
         sta_lis = [(k,sum([vi[0] for vi in v]),v) for k,v in sta_dic.iteritems()]
         sta_lis = sorted(sta_lis,key=operator.itemgetter(1),reverse=True)
-        print sta_lis
         with lt.open_file(file_suffix='merged_patch_sta') as f:
             for patch, num, detail in sta_lis:
                 # detail = ' '.join(detail)

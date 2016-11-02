@@ -63,7 +63,7 @@ class PatchSearchSpecific(PatchSearch):
 @lt.run_time
 def main():
     with open(sys.argv[1]) as wdsp_f:
-        CUTOFF = 20
+        CUTOFF = 0
         wdsp = Wdsp(wdsp_f)
         a = PatchSearch(wdsp.pros,wdsp.seqs,wdsp.wdsps,wdsp.hotspots,CUTOFF)
         a.get_patches()
