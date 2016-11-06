@@ -13,7 +13,7 @@ class HOTLOGO:
         self.seq = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K',\
                     'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
         self.align_f = align_f
-        self.title = os.path.splitext(align_f.name)[0] + ' sequence logo'
+        self.title = os.path.splitext(align_f.name)[0] + ' Sequence Logo'
         self.position = {}  # format {0:['ARNAA...'],...}
         self.matrix = {}  # format {0:{'A':2,...},...}
         self.posibits = {}  # foramt {0:1.4,...}
