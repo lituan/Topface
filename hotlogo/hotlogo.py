@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+creat logo for aligned hotspots
+input formats be as follows:
+
+input file has following formats:
+A4SBD7              EVC KER KDY WTG LAG NDD
+
+you can change read_align or read_hot for your formats
+"""
 import sys
 import os
 import operator
@@ -34,7 +45,7 @@ class HOTLOGO:
         self.get_posiheight()
         self.get_sort_posiheight()
 
-        #self.print_matrix()
+        # self.print_matrix()
 
         self.set_parameters()
         self.makelogo()
@@ -42,7 +53,7 @@ class HOTLOGO:
     def read_align(self, seq_f):
         lines = seq_f.readlines()
         lines = filter(lambda x: len(x) > 0, lines)
-        lines = [line.strip('\n') for line in lines]
+        lines = [line.rstrip('\n\r') for line in lines]
         seq_lines = {}
         for line in lines:
             if '>' in line:
@@ -62,7 +73,7 @@ class HOTLOGO:
     def read_hot(self, hot_f):
         lines = hot_f.readlines()
         lines = filter(lambda x: len(x) > 0, lines)
-        self.hot = [''.join(h) for h in [l.split()[2:] for l in lines]]
+        self.hot = [''.join(h) for h in [l.split()[1:] for l in lines]]
         self.logo_len = len(self.hot[0])
         self.hot_num = len(self.hot)
         for i in range(self.logo_len):
