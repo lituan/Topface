@@ -146,6 +146,17 @@ def align(seq1, seq2):
 
     return identity
 
+@lt.run_time
+def seq_similarity(tem_wdsp,all_wdsp):
+    tem_similarity = OrderedDict()
+    for tem,tem_seq in tem_wdsp.seqs.iteritems():
+        sim = OrderedDict()
+        for pro,pro_seq in all_wdsp.seqs.iteritems():
+            sim[pro] = align(tem_seq,pro_seq)
+        tem_similarity[tem] = sim
+    return tem_similarity
+
+
 def repeat_similarity(repeats):
     lens = len(repeats)
     sims = []
@@ -160,6 +171,8 @@ def repeat_similarity(repeats):
     average = (sum([sum(i) for i in sims])-lens*100)/(lens*(lens-1))
     return average,sims
 
+
+@lt.run_time
 def wdsp_repeat_similarity(repeat_dic):
     sims = OrderedDict()
     for pro,repeats in repeat_dic.iteritems():
@@ -167,19 +180,19 @@ def wdsp_repeat_similarity(repeat_dic):
     return sims
 
 
-
-def write_result(tem_all_hots, tem_hots, tem_wdsp, all_hots, all_wdsp,all_repeats_similarity,cutoff=0):
+@lt.run_time
+def write_result(tem_all_hots, tem_hots, tem_wdsp, all_hots, all_wdsp,tem_repeats_similarity,all_repeats_similarity,tem_all_seq_similarity,cutoff=0):
     for tem_pro, all_pros in tem_all_hots.iteritems():
 
         f_name = tem_pro + '_similar_hotspots_' + str(cutoff)
         with lt.open_file(f_name) as w_f:
-            print >> w_f, '{0:<20}{1:<15}{2:<15}{3:<15}{4:<15}{5:<15}{6:<}'.format(
-                'protein_id', 'identity', "hotspot_num", 'repeat_length',"repeats_sim",'tetrad_num','hotspots' )
-            print >> w_f, '{0:<20}{1:<15}{2:<15}{3:<15}{4:<15}{5:<15}{6:<}'.format(
-                tem_pro, '100', len(tem_hots[tem_pro]), tem_wdsp.repeat_num[tem_pro],all_repeats_similarity[tem_pro][0],tem_wdsp.tetrad_num[tem_pro], ' '.join(tem_hots[tem_pro]))
+            print >> w_f, '{0:<20}{1:<15}{2:<18}{3:<15}{4:<15}{5:<15}{6:<15}{7:<}'.format(
+                'protein_id', 'identity','seq_similarity', "hotspot_num", 'repeat_length',"repeats_sim",'tetrad_num','hotspots' )
+            print >> w_f, '{0:<20}{1:<15}{2:<18}{3:<15}{4:<15}{5:<15}{6:<15}{7:<}'.format(
+                tem_pro, '100', '100', len(tem_hots[tem_pro]), tem_wdsp.repeat_num[tem_pro],tem_repeats_similarity[tem_pro][0],tem_wdsp.tetrad_num[tem_pro], ' '.join(tem_hots[tem_pro]))
             for pro,identity in all_pros:
-                print >> w_f, '{0:<20}{1:<15}{2:<15}{3:<15}{4:<15}{5:<15}{6:<}'.format(
-                    pro, identity, len(all_hots[pro]), all_wdsp.repeat_num[pro],all_repeats_similarity[pro][0],all_wdsp.tetrad_num[pro], ' '.join(all_hots[pro]))
+                print >> w_f, '{0:<20}{1:<15}{2:<18}{3:<15}{4:<15}{5:<15}{6:<15}{7:<}'.format(
+                    pro, identity, tem_all_seq_similarity[tem_pro][pro], len(all_hots[pro]), all_wdsp.repeat_num[pro],all_repeats_similarity[pro][0],all_wdsp.tetrad_num[pro], ' '.join(all_hots[pro]))
 
         f_name = tem_pro + '_similar_hotspots_wdsp' + str(cutoff)
         with lt.open_file(f_name,file_extension='.wdsp') as w_f:
@@ -192,7 +205,7 @@ def write_result(tem_all_hots, tem_hots, tem_wdsp, all_hots, all_wdsp,all_repeat
         f_name = tem_pro + '_similar_hotspots_seq' + str(cutoff)
         with lt.open_file(f_name) as w_f:
             print >> w_f,'>',tem_pro
-            seq = all_wdsp.seqs[tem_pro]
+            seq = tem_wdsp.seqs[tem_pro]
             for s in [seq[i:i+80] for i in range(0,len(seq),80)]:
                 print >> w_f,s
             for pro in all_pros:
@@ -207,15 +220,18 @@ def main():
     with open(sys.argv[-2]) as wdsp_f:
         tem_wdsp = Wdsp(wdsp_f)
         tem_hots = tem_wdsp.hotspots
-    with open(sys.argv[-1]) as wdsp_f:
-        all_wdsp = Wdsp(wdsp_f)
-        all_hots = all_wdsp.hotspots
-        all_repeats_similarity = wdsp_repeat_similarity(all_wdsp.repeats)
+        tem_repeats_similarity = wdsp_repeat_similarity(tem_wdsp.repeats)
+        with open(sys.argv[-1]) as wdsp_f:
+            all_wdsp = Wdsp(wdsp_f)
+            all_hots = all_wdsp.hotspots
+            all_repeats_similarity = wdsp_repeat_similarity(all_wdsp.repeats)
+            tem_all_seq_similarity = seq_similarity(tem_wdsp,all_wdsp)
+
 
     cutoff = 70
-    for cutoff in [10,20,30,40,50,60,70,80,90,95]:
+    for cutoff in [30,40,50,60,70,80,90]:
         tem_all_hots = get_similar_hots(tem_hots, all_hots,cutoff)
-        write_result(tem_all_hots, tem_hots, tem_wdsp, all_hots,all_wdsp,all_repeats_similarity,cutoff)
+        write_result(tem_all_hots, tem_hots, tem_wdsp, all_hots,all_wdsp,tem_repeats_similarity,all_repeats_similarity,tem_all_seq_similarity,cutoff)
 
 
 if __name__ == "__main__":
