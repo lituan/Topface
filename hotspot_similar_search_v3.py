@@ -123,7 +123,7 @@ def get_similar_hots(tem_hots, all_hots, cutoff=0):
                 if identity >= cutoff:
                     similar.append((p,identity))
                 i +=1
-                print i
+                # print i
         similar = sorted(similar,key=operator.itemgetter(1),reverse=True)
         tem_all_hots[pro] = similar
 
@@ -229,7 +229,8 @@ def main():
 
 
     cutoff = 70
-    for cutoff in [30,40,50,60,70,80,90]:
+    # for cutoff in [30,40,50,60,70,80,90]:
+    for cutoff in [10]:
         tem_all_hots = get_similar_hots(tem_hots, all_hots,cutoff)
         write_result(tem_all_hots, tem_hots, tem_wdsp, all_hots,all_wdsp,tem_repeats_similarity,all_repeats_similarity,tem_all_seq_similarity,cutoff)
 

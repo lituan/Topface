@@ -48,7 +48,7 @@ def main():
         # align each entry
         entries_new = []
         for entry in entries:
-            combine = [entry[0][1]+'    ']
+            combine = ['{0:<40}'.format(entry[0][1])]
             for b in [blade[3:-1] for blade in entry[1:]]:
                 combine +=  b
             entries_new.append(combine)
