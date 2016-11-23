@@ -1,0 +1,92 @@
+<!--
+Unicode requested: 96 (decimal: 96 hex: 0x60)
+Glyph index for unicode: 67
+Load Glyph into Face's glyph slot. error code: 0
+Glyph Name: 
+Glyph Width: 140064726191560 Height: 140064735585408 Hor. Advance: 1 Vert. Advance: 140064741002936
+Num points: 4
+Num contours: 1
+Contour endpoint index values: 3
+-->
+<!-- do outline -->
+
+<!--
+new contour starting. startpt index, endpt index:0,3
+number of points in this contour: 4
+moving to first pt 465,-1194
+listing pts: [this pt index][isctrl] <next pt index><isctrl> [x,y] <nx,ny>
+ [0][0] <1><0> <<2>><<0>> [465,-1194] <320,-1194> <<89,-1474>>
+ line to 320,-1194
+ [1][0] <2><0> <<3>><<0>> [320,-1194] <89,-1474> <<330,-1474>>
+ line to 89,-1474
+ [2][0] <3><0> <<0>><<0>> [89,-1474] <330,-1474> <<465,-1194>>
+ line to 330,-1474
+ [3][0] <0><0> <<1>><<0>> [330,-1474] <465,-1194> <<320,-1194>>
+ line to 465,-1194
+ 
+-->
+
+<svg width='5457px' height='2794px' xmlns='http://www.w3.org/2000/svg' version='1.1'>
+
+ <!-- draw border -->
+ <rect fill='none' stroke='black' width='5456' height='2793'/>
+
+ <!-- make sure glyph is visible within svg window -->
+ <g fill-rule='nonzero'  transform='translate(100 2395)'>
+
+  <!-- draw axes --> 
+ <path stroke='blue' stroke-dasharray='5,5' d=' M-5457,0 L5457,0 M0,-2794 L0,2794 '/>
+
+  <!-- draw bearing + advance box --> 
+ <path stroke='blue' fill='none' stroke-dasharray='10,16' d=' M0,-1101 M0,821 L682,821 L682,-1101 L0,-1101 '/>
+
+  <!-- draw points as circles -->
+  <!--0--><circle fill='blue' stroke='black' cx='465' cy='-1194' r='10'/>
+  <!--1--><circle fill='blue' stroke='black' cx='320' cy='-1194' r='5'/>
+  <!--2--><circle fill='blue' stroke='black' cx='89' cy='-1474' r='5'/>
+  <!--3--><circle fill='blue' stroke='black' cx='330' cy='-1474' r='5'/>
+
+  <!-- draw straight lines between points -->
+  <path fill='none' stroke='green' d='
+   M 465,-1194
+
+  '/>
+  <path fill='none' stroke='green' d=' M 465,-1194 L 320,-1194
+  '/>
+  <path fill='none' stroke='green' d=' M 320,-1194 L 89,-1474
+  '/>
+  <path fill='none' stroke='green' d=' M 89,-1474 L 330,-1474
+  '/>
+
+  <!-- draw actual outline using lines and Bezier curves-->
+  <path fill='black' stroke='black' fill-opacity='0.45'  stroke-width='2'  d='
+ M 465,-1194
+ L 320,-1194
+ L 89,-1474
+ L 330,-1474
+ L 465,-1194
+ Z
+
+  '/>
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='470' y='-1199' stroke='none' fill='darkgreen'>
+  465,-1194  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='325' y='-1199' stroke='none' fill='darkgreen'>
+  320,-1194  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='94' y='-1479' stroke='none' fill='darkgreen'>
+  89,-1474  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='335' y='-1479' stroke='none' fill='darkgreen'>
+  330,-1474  </text>
+ </g>
+
+ </g>
+</svg>
