@@ -1,0 +1,180 @@
+<!--
+Unicode requested: 73 (decimal: 73 hex: 0x49)
+Glyph index for unicode: 44
+Load Glyph into Face's glyph slot. error code: 0
+Glyph Name: I
+Glyph Width: 140016135179720 Height: 140016144573568 Hor. Advance: 1 Vert. Advance: 140016150515384
+Num points: 12
+Num contours: 1
+Contour endpoint index values: 11
+-->
+<!-- do outline -->
+
+<!--
+new contour starting. startpt index, endpt index:0,11
+number of points in this contour: 12
+moving to first pt 612,0
+listing pts: [this pt index][isctrl] <next pt index><isctrl> [x,y] <nx,ny>
+ [0][0] <1><0> <<2>><<0>> [612,0] <82,0> <<82,-102>>
+ line to 82,0
+ [1][0] <2><0> <<3>><<0>> [82,0] <82,-102> <<254,-143>>
+ line to 82,-102
+ [2][0] <3><0> <<4>><<0>> [82,-102] <254,-143> <<254,-1319>>
+ line to 254,-143
+ [3][0] <4><0> <<5>><<0>> [254,-143] <254,-1319> <<82,-1360>>
+ line to 254,-1319
+ [4][0] <5><0> <<6>><<0>> [254,-1319] <82,-1360> <<82,-1462>>
+ line to 82,-1360
+ [5][0] <6><0> <<7>><<0>> [82,-1360] <82,-1462> <<612,-1462>>
+ line to 82,-1462
+ [6][0] <7><0> <<8>><<0>> [82,-1462] <612,-1462> <<612,-1360>>
+ line to 612,-1462
+ [7][0] <8><0> <<9>><<0>> [612,-1462] <612,-1360> <<440,-1319>>
+ line to 612,-1360
+ [8][0] <9><0> <<10>><<0>> [612,-1360] <440,-1319> <<440,-143>>
+ line to 440,-1319
+ [9][0] <10><0> <<11>><<0>> [440,-1319] <440,-143> <<612,-102>>
+ line to 440,-143
+ [10][0] <11><0> <<0>><<0>> [440,-143] <612,-102> <<612,0>>
+ line to 612,-102
+ [11][0] <0><0> <<1>><<0>> [612,-102] <612,0> <<82,0>>
+ line to 612,0
+ 
+-->
+
+<svg width='2318px' height='2399px' xmlns='http://www.w3.org/2000/svg' version='1.1'>
+
+ <!-- draw border -->
+ <rect fill='none' stroke='black' width='2317' height='2398'/>
+
+ <!-- make sure glyph is visible within svg window -->
+ <g fill-rule='nonzero'  transform='translate(100 1860)'>
+
+  <!-- draw axes --> 
+ <path stroke='blue' stroke-dasharray='5,5' d=' M-2318,0 L2318,0 M0,-2399 L0,2399 '/>
+
+  <!-- draw bearing + advance box --> 
+ <path stroke='blue' fill='none' stroke-dasharray='10,16' d=' M0,-1760 M0,299 L694,299 L694,-1760 L0,-1760 '/>
+
+  <!-- draw points as circles -->
+  <!--0--><circle fill='blue' stroke='black' cx='612' cy='0' r='10'/>
+  <!--1--><circle fill='blue' stroke='black' cx='82' cy='0' r='5'/>
+  <!--2--><circle fill='blue' stroke='black' cx='82' cy='-102' r='5'/>
+  <!--3--><circle fill='blue' stroke='black' cx='254' cy='-143' r='5'/>
+  <!--4--><circle fill='blue' stroke='black' cx='254' cy='-1319' r='5'/>
+  <!--5--><circle fill='blue' stroke='black' cx='82' cy='-1360' r='5'/>
+  <!--6--><circle fill='blue' stroke='black' cx='82' cy='-1462' r='5'/>
+  <!--7--><circle fill='blue' stroke='black' cx='612' cy='-1462' r='5'/>
+  <!--8--><circle fill='blue' stroke='black' cx='612' cy='-1360' r='5'/>
+  <!--9--><circle fill='blue' stroke='black' cx='440' cy='-1319' r='5'/>
+  <!--10--><circle fill='blue' stroke='black' cx='440' cy='-143' r='5'/>
+  <!--11--><circle fill='blue' stroke='black' cx='612' cy='-102' r='5'/>
+
+  <!-- draw straight lines between points -->
+  <path fill='none' stroke='green' d='
+   M 612,0
+
+  '/>
+  <path fill='none' stroke='green' d=' M 612,0 L 82,0
+  '/>
+  <path fill='none' stroke='green' d=' M 82,0 L 82,-102
+  '/>
+  <path fill='none' stroke='green' d=' M 82,-102 L 254,-143
+  '/>
+  <path fill='none' stroke='green' d=' M 254,-143 L 254,-1319
+  '/>
+  <path fill='none' stroke='green' d=' M 254,-1319 L 82,-1360
+  '/>
+  <path fill='none' stroke='green' d=' M 82,-1360 L 82,-1462
+  '/>
+  <path fill='none' stroke='green' d=' M 82,-1462 L 612,-1462
+  '/>
+  <path fill='none' stroke='green' d=' M 612,-1462 L 612,-1360
+  '/>
+  <path fill='none' stroke='green' d=' M 612,-1360 L 440,-1319
+  '/>
+  <path fill='none' stroke='green' d=' M 440,-1319 L 440,-143
+  '/>
+  <path fill='none' stroke='green' d=' M 440,-143 L 612,-102
+  '/>
+
+  <!-- draw actual outline using lines and Bezier curves-->
+  <path fill='black' stroke='black' fill-opacity='0.45'  stroke-width='2'  d='
+ M 612,0
+ L 82,0
+ L 82,-102
+ L 254,-143
+ L 254,-1319
+ L 82,-1360
+ L 82,-1462
+ L 612,-1462
+ L 612,-1360
+ L 440,-1319
+ L 440,-143
+ L 612,-102
+ L 612,0
+ Z
+
+  '/>
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='617' y='-5' stroke='none' fill='darkgreen'>
+  612,0  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='87' y='-5' stroke='none' fill='darkgreen'>
+  82,0  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='87' y='-107' stroke='none' fill='darkgreen'>
+  82,-102  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='259' y='-148' stroke='none' fill='darkgreen'>
+  254,-143  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='259' y='-1324' stroke='none' fill='darkgreen'>
+  254,-1319  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='87' y='-1365' stroke='none' fill='darkgreen'>
+  82,-1360  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='87' y='-1467' stroke='none' fill='darkgreen'>
+  82,-1462  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='617' y='-1467' stroke='none' fill='darkgreen'>
+  612,-1462  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='617' y='-1365' stroke='none' fill='darkgreen'>
+  612,-1360  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='445' y='-1324' stroke='none' fill='darkgreen'>
+  440,-1319  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='445' y='-148' stroke='none' fill='darkgreen'>
+  440,-143  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='617' y='-107' stroke='none' fill='darkgreen'>
+  612,-102  </text>
+ </g>
+
+ </g>
+</svg>

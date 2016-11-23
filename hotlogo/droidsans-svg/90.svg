@@ -1,0 +1,158 @@
+<!--
+Unicode requested: 90 (decimal: 90 hex: 0x5a)
+Glyph index for unicode: 61
+Load Glyph into Face's glyph slot. error code: 0
+Glyph Name: Z
+Glyph Width: 140626939088328 Height: 140626948482176 Hor. Advance: 1 Vert. Advance: 140626954096312
+Num points: 10
+Num contours: 1
+Contour endpoint index values: 9
+-->
+<!-- do outline -->
+
+<!--
+new contour starting. startpt index, endpt index:0,9
+number of points in this contour: 10
+moving to first pt 1022,0
+listing pts: [this pt index][isctrl] <next pt index><isctrl> [x,y] <nx,ny>
+ [0][0] <1><0> <<2>><<0>> [1022,0] <82,0> <<82,-145>>
+ line to 82,0
+ [1][0] <2><0> <<3>><<0>> [82,0] <82,-145> <<793,-1296>>
+ line to 82,-145
+ [2][0] <3><0> <<4>><<0>> [82,-145] <793,-1296> <<102,-1296>>
+ line to 793,-1296
+ [3][0] <4><0> <<5>><<0>> [793,-1296] <102,-1296> <<102,-1462>>
+ line to 102,-1296
+ [4][0] <5><0> <<6>><<0>> [102,-1296] <102,-1462> <<1001,-1462>>
+ line to 102,-1462
+ [5][0] <6><0> <<7>><<0>> [102,-1462] <1001,-1462> <<1001,-1317>>
+ line to 1001,-1462
+ [6][0] <7><0> <<8>><<0>> [1001,-1462] <1001,-1317> <<291,-166>>
+ line to 1001,-1317
+ [7][0] <8><0> <<9>><<0>> [1001,-1317] <291,-166> <<1022,-166>>
+ line to 291,-166
+ [8][0] <9><0> <<0>><<0>> [291,-166] <1022,-166> <<1022,0>>
+ line to 1022,-166
+ [9][0] <0><0> <<1>><<0>> [1022,-166] <1022,0> <<82,0>>
+ line to 1022,0
+ 
+-->
+
+<svg width='2318px' height='2399px' xmlns='http://www.w3.org/2000/svg' version='1.1'>
+
+ <!-- draw border -->
+ <rect fill='none' stroke='black' width='2317' height='2398'/>
+
+ <!-- make sure glyph is visible within svg window -->
+ <g fill-rule='nonzero'  transform='translate(100 1860)'>
+
+  <!-- draw axes --> 
+ <path stroke='blue' stroke-dasharray='5,5' d=' M-2318,0 L2318,0 M0,-2399 L0,2399 '/>
+
+  <!-- draw bearing + advance box --> 
+ <path stroke='blue' fill='none' stroke-dasharray='10,16' d=' M0,-1760 M0,299 L1104,299 L1104,-1760 L0,-1760 '/>
+
+  <!-- draw points as circles -->
+  <!--0--><circle fill='blue' stroke='black' cx='1022' cy='0' r='10'/>
+  <!--1--><circle fill='blue' stroke='black' cx='82' cy='0' r='5'/>
+  <!--2--><circle fill='blue' stroke='black' cx='82' cy='-145' r='5'/>
+  <!--3--><circle fill='blue' stroke='black' cx='793' cy='-1296' r='5'/>
+  <!--4--><circle fill='blue' stroke='black' cx='102' cy='-1296' r='5'/>
+  <!--5--><circle fill='blue' stroke='black' cx='102' cy='-1462' r='5'/>
+  <!--6--><circle fill='blue' stroke='black' cx='1001' cy='-1462' r='5'/>
+  <!--7--><circle fill='blue' stroke='black' cx='1001' cy='-1317' r='5'/>
+  <!--8--><circle fill='blue' stroke='black' cx='291' cy='-166' r='5'/>
+  <!--9--><circle fill='blue' stroke='black' cx='1022' cy='-166' r='5'/>
+
+  <!-- draw straight lines between points -->
+  <path fill='none' stroke='green' d='
+   M 1022,0
+
+  '/>
+  <path fill='none' stroke='green' d=' M 1022,0 L 82,0
+  '/>
+  <path fill='none' stroke='green' d=' M 82,0 L 82,-145
+  '/>
+  <path fill='none' stroke='green' d=' M 82,-145 L 793,-1296
+  '/>
+  <path fill='none' stroke='green' d=' M 793,-1296 L 102,-1296
+  '/>
+  <path fill='none' stroke='green' d=' M 102,-1296 L 102,-1462
+  '/>
+  <path fill='none' stroke='green' d=' M 102,-1462 L 1001,-1462
+  '/>
+  <path fill='none' stroke='green' d=' M 1001,-1462 L 1001,-1317
+  '/>
+  <path fill='none' stroke='green' d=' M 1001,-1317 L 291,-166
+  '/>
+  <path fill='none' stroke='green' d=' M 291,-166 L 1022,-166
+  '/>
+
+  <!-- draw actual outline using lines and Bezier curves-->
+  <path fill='black' stroke='black' fill-opacity='0.45'  stroke-width='2'  d='
+ M 1022,0
+ L 82,0
+ L 82,-145
+ L 793,-1296
+ L 102,-1296
+ L 102,-1462
+ L 1001,-1462
+ L 1001,-1317
+ L 291,-166
+ L 1022,-166
+ L 1022,0
+ Z
+
+  '/>
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='1027' y='-5' stroke='none' fill='darkgreen'>
+  1022,0  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='87' y='-5' stroke='none' fill='darkgreen'>
+  82,0  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='87' y='-150' stroke='none' fill='darkgreen'>
+  82,-145  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='798' y='-1301' stroke='none' fill='darkgreen'>
+  793,-1296  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='107' y='-1301' stroke='none' fill='darkgreen'>
+  102,-1296  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='107' y='-1467' stroke='none' fill='darkgreen'>
+  102,-1462  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='1006' y='-1467' stroke='none' fill='darkgreen'>
+  1001,-1462  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='1006' y='-1322' stroke='none' fill='darkgreen'>
+  1001,-1317  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='296' y='-171' stroke='none' fill='darkgreen'>
+  291,-166  </text>
+ </g>
+
+ <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
+  <text id='revision' x='1027' y='-171' stroke='none' fill='darkgreen'>
+  1022,-166  </text>
+ </g>
+
+ </g>
+</svg>
