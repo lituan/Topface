@@ -100,7 +100,7 @@ def draw_logo(ax, matrix, charwidth):
             bottom += height
 
 
-def plot_seqlogo(ax, pfm, charwidth=1.0, **kwargs):
+def plot_seqlogo(ax, pfm, charwidth=1.0, xlim='',**kwargs):
     info_content = np.log2(
         20) - pfm.apply(lambda p: (-p * np.log2(p)).sum(), axis=1)
     matrix = pfm.mul(info_content, axis=0)
@@ -108,7 +108,10 @@ def plot_seqlogo(ax, pfm, charwidth=1.0, **kwargs):
     seqlen = len(pfm)
     draw_logo(ax, matrix, charwidth, **kwargs)
     # xlim
-    ax.set_xlim([0, seqlen * charwidth])
+    if xlim:
+        ax.set_xlim([0, xlim])
+    else:
+        ax.set_xlim([0, seqlen * charwidth])
     # major ticks
     ax.xaxis.set_major_locator(ticker.FixedLocator(np.arange(0, seqlen*charwidth,charwidth)))
     ax.xaxis.set_major_formatter(ticker.NullFormatter())
@@ -127,6 +130,9 @@ def plot_seqlogo(ax, pfm, charwidth=1.0, **kwargs):
     # hide top and right spines
     # ax.spines['top'].set_visible(False)
     # ax.spines['right'].set_visible(False)
+    # set x y label
+    ax.set_xlabel('position')
+    ax.set_ylabel('bits')
 
 
 def read_msa(msa_f):
@@ -137,14 +143,16 @@ def read_msa(msa_f):
             lines) if '>' in line] + [len(lines)]
         seqs = [lines[n:pro_line_num[i + 1]]
                 for i, n in enumerate(pro_line_num[:-1])]
+        seqs = [(seq[0][1:], ''.join(seq[1:])) for seq in seqs]
+
         seq_number = len(seqs)
         seq_len = len(seqs[0][1])
-        seqs = [(seq[0][1:], ''.join(seq[1:])) for seq in seqs]
-    positions = [[seqs[i][1][j]
-                  for i in range(seq_number)] for j in range(seq_len)]
-    pfm = [[pos.count(a) * 1.0 / seq_number for a in AA] for pos in positions]
-    pfm = pd.DataFrame(pfm, columns=AA)
-    return pfm
+        positions = [[seqs[i][1][j]
+                      for i in range(seq_number)] for j in range(seq_len)]
+        pfm = [[pos.count(a) * 1.0 / seq_number for a in AA] for pos in positions]
+        pfm = [pos for pos in pfm if sum(pos) >= 0.95]
+        pfm = pd.DataFrame(pfm, columns=AA)
+        return pfm
 
 
 def main():
@@ -156,12 +164,16 @@ def main():
 
     fig = plt.figure(figsize=(80,10*subplots),tight_layout=True)
     # fig = plt.figure(tight_layout=True)
-    for i,pfm in enumerate(pfm):
+    params = {'axes.labelsize':30,
+              'xtick.labelsize':30,
+              'ytick.labelsize':30}
+    plt.rcParams.update(params)
+    for i,pfmi in enumerate(pfm):
         ax = fig.add_subplot(subplots,1,i+1)
-        plot_seqlogo(ax, pfm)
-        ax.set_aspect(1)
-        ax.set_xlabel('position')
-        ax.set_ylabel('bits')
+        plot_seqlogo(ax, pfmi,xlim=80)
+        # ax.set_aspect(1)
+        # ax.set_xlabel('position',labelsize=40)
+        # ax.set_ylabel('bits',labelsize=40)
         plt.savefig('test.png')
     plt.close('all')
 
