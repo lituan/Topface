@@ -290,7 +290,10 @@ def plot_scatter(seq_identity,topface_identity,filename):
     p = pd.DataFrame(p)
     g = sns.lmplot('seq_identity','topface_identity',p)
     g.set(xlim=(0,1.0),ylim=(0,1.0))
-    test = scipy.stats.ttest_ind(seq_identity,topface_identity,equal_var=False)
+    test = scipy.stats.ttest_ind(topface_identity,seq_identity,equal_var=False)
+    x = [0,0.2,0.4,0.6,0.8,1.0]
+    y = [0,0.2,0.4,0.6,0.8,1.0]
+    g.ax.plot(x,y,c='black',linestyle='--',lw=1,alpha=0.5)
 
     plt.title('statistic:'+'{0:4.3f}'.format(test.statistic)+'    p-value:'+'{0:<8.7f}'.format(test.pvalue*0.5))
     plt.savefig(filename+'.png',dpi=300)
