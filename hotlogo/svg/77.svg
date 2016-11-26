@@ -1,232 +1,212 @@
 <!--
 Unicode requested: 77 (decimal: 77 hex: 0x4d)
-Glyph index for unicode: 48
+Glyph index for unicode: 47
 Load Glyph into Face's glyph slot. error code: 0
-Glyph Name: 
-Glyph Width: 140342626094536 Height: 140342635488384 Hor. Advance: 1 Vert. Advance: 140342642282168
-Num points: 17
+Glyph Name: M
+Glyph Width: 139644255604168 Height: 139644264998016 Hor. Advance: 1 Vert. Advance: 139644272185016
+Num points: 15
 Num contours: 1
-Contour endpoint index values: 16
+Contour endpoint index values: 14
 -->
 <!-- do outline -->
 
 <!--
-new contour starting. startpt index, endpt index:0,16
-number of points in this contour: 17
-moving to first pt 152,0
+new contour starting. startpt index, endpt index:0,14
+number of points in this contour: 15
+moving to first pt 377,-1456
 listing pts: [this pt index][isctrl] <next pt index><isctrl> [x,y] <nx,ny>
- [0][0] <1><0> <<2>><<0>> [152,0] <152,-1466> <<444,-1466>>
- line to 152,-1466
- [1][0] <2><0> <<3>><<0>> [152,-1466] <444,-1466> <<791,-428>>
- line to 444,-1466
- [2][0] <3><0> <<4>><<1>> [444,-1466] <791,-428> <<839,-283>>
- line to 791,-428
- [3][0] <4><1> <<5>><<0>> [791,-428] <839,-283> <<861,-211>>
- bezier to 861,-211 ctlx, ctly: 839,-283
- [4][1] <5><0> <<6>><<1>> [839,-283] <861,-211> <<886,-291>>
- this is ctrl pt. skipping to 861,-211
- [5][0] <6><1> <<7>><<0>> [861,-211] <886,-291> <<939,-446>>
- bezier to 939,-446 ctlx, ctly: 886,-291
- [6][1] <7><0> <<8>><<0>> [886,-291] <939,-446> <<1290,-1466>>
- this is ctrl pt. skipping to 939,-446
- [7][0] <8><0> <<9>><<0>> [939,-446] <1290,-1466> <<1551,-1466>>
- line to 1290,-1466
- [8][0] <9><0> <<10>><<0>> [1290,-1466] <1551,-1466> <<1551,0>>
- line to 1551,-1466
- [9][0] <10><0> <<11>><<0>> [1551,-1466] <1551,0> <<1364,0>>
- line to 1551,0
- [10][0] <11><0> <<12>><<0>> [1551,0] <1364,0> <<1364,-1227>>
- line to 1364,0
- [11][0] <12><0> <<13>><<0>> [1364,0] <1364,-1227> <<938,0>>
- line to 1364,-1227
- [12][0] <13><0> <<14>><<0>> [1364,-1227] <938,0> <<763,0>>
- line to 938,0
- [13][0] <14><0> <<15>><<0>> [938,0] <763,0> <<339,-1248>>
- line to 763,0
- [14][0] <15><0> <<16>><<0>> [763,0] <339,-1248> <<339,0>>
- line to 339,-1248
- [15][0] <16><0> <<0>><<0>> [339,-1248] <339,0> <<152,0>>
- line to 339,0
- [16][0] <0><0> <<1>><<0>> [339,0] <152,0> <<152,-1466>>
- line to 152,0
+ [0][0] <1><0> <<2>><<0>> [377,-1456] <614,-728> <<870,-1456>>
+ line to 614,-728
+ [1][0] <2><0> <<3>><<0>> [614,-728] <870,-1456> <<1100,-1456>>
+ line to 870,-1456
+ [2][0] <3><0> <<4>><<0>> [870,-1456] <1100,-1456> <<1100,0>>
+ line to 1100,-1456
+ [3][0] <4><0> <<5>><<0>> [1100,-1456] <1100,0> <<920,0>>
+ line to 1100,0
+ [4][0] <5><0> <<6>><<0>> [1100,0] <920,0> <<920,-581>>
+ line to 920,0
+ [5][0] <6><0> <<7>><<0>> [920,0] <920,-581> <<935,-1189>>
+ line to 920,-581
+ [6][0] <7><0> <<8>><<0>> [920,-581] <935,-1189> <<666,-405>>
+ line to 935,-1189
+ [7][0] <8><0> <<9>><<0>> [935,-1189] <666,-405> <<560,-405>>
+ line to 666,-405
+ [8][0] <9><0> <<10>><<0>> [666,-405] <560,-405> <<313,-1168>>
+ line to 560,-405
+ [9][0] <10><0> <<11>><<0>> [560,-405] <313,-1168> <<328,-581>>
+ line to 313,-1168
+ [10][0] <11><0> <<12>><<0>> [313,-1168] <328,-581> <<328,0>>
+ line to 328,-581
+ [11][0] <12><0> <<13>><<0>> [328,-581] <328,0> <<148,0>>
+ line to 328,0
+ [12][0] <13><0> <<14>><<0>> [328,0] <148,0> <<148,-1456>>
+ line to 148,0
+ [13][0] <14><0> <<0>><<0>> [148,0] <148,-1456> <<377,-1456>>
+ line to 148,-1456
+ [14][0] <0><0> <<1>><<0>> [148,-1456] <377,-1456> <<614,-728>>
+ line to 377,-1456
  
 -->
 
-<svg width='5457px' height='2794px' xmlns='http://www.w3.org/2000/svg' version='1.1'>
+<svg width='2964px' height='2718px' xmlns='http://www.w3.org/2000/svg' version='1.1'>
 
  <!-- draw border -->
- <rect fill='none' stroke='black' width='5456' height='2793'/>
+ <rect fill='none' stroke='black' width='2963' height='2717'/>
 
  <!-- make sure glyph is visible within svg window -->
- <g fill-rule='nonzero'  transform='translate(100 1794)'>
+ <g fill-rule='nonzero'  transform='translate(100 2178)'>
 
   <!-- draw axes --> 
- <path stroke='blue' stroke-dasharray='5,5' d=' M-5457,0 L5457,0 M0,-2794 L0,2794 '/>
+ <path stroke='blue' stroke-dasharray='5,5' d=' M-2964,0 L2964,0 M0,-2718 L0,2718 '/>
 
   <!-- draw bearing + advance box --> 
- <path stroke='blue' fill='none' stroke-dasharray='10,16' d=' M0,-1694 M0,228 L1706,228 L1706,-1694 L0,-1694 '/>
+ <path stroke='blue' fill='none' stroke-dasharray='10,16' d=' M0,-2078 M0,623 L1229,623 L1229,-2078 L0,-2078 '/>
 
   <!-- draw points as circles -->
-  <!--0--><circle fill='blue' stroke='black' cx='152' cy='0' r='10'/>
-  <!--1--><circle fill='blue' stroke='black' cx='152' cy='-1466' r='5'/>
-  <!--2--><circle fill='blue' stroke='black' cx='444' cy='-1466' r='5'/>
-  <!--3--><circle fill='blue' stroke='black' cx='791' cy='-428' r='5'/>
-  <!--4--><circle fill='none' stroke='black' cx='839' cy='-283' r='5'/>
-  <!--5--><circle fill='blue' stroke='black' cx='861' cy='-211' r='5'/>
-  <!--6--><circle fill='none' stroke='black' cx='886' cy='-291' r='5'/>
-  <!--7--><circle fill='blue' stroke='black' cx='939' cy='-446' r='5'/>
-  <!--8--><circle fill='blue' stroke='black' cx='1290' cy='-1466' r='5'/>
-  <!--9--><circle fill='blue' stroke='black' cx='1551' cy='-1466' r='5'/>
-  <!--10--><circle fill='blue' stroke='black' cx='1551' cy='0' r='5'/>
-  <!--11--><circle fill='blue' stroke='black' cx='1364' cy='0' r='5'/>
-  <!--12--><circle fill='blue' stroke='black' cx='1364' cy='-1227' r='5'/>
-  <!--13--><circle fill='blue' stroke='black' cx='938' cy='0' r='5'/>
-  <!--14--><circle fill='blue' stroke='black' cx='763' cy='0' r='5'/>
-  <!--15--><circle fill='blue' stroke='black' cx='339' cy='-1248' r='5'/>
-  <!--16--><circle fill='blue' stroke='black' cx='339' cy='0' r='5'/>
+  <!--0--><circle fill='blue' stroke='black' cx='377' cy='-1456' r='10'/>
+  <!--1--><circle fill='blue' stroke='black' cx='614' cy='-728' r='5'/>
+  <!--2--><circle fill='blue' stroke='black' cx='870' cy='-1456' r='5'/>
+  <!--3--><circle fill='blue' stroke='black' cx='1100' cy='-1456' r='5'/>
+  <!--4--><circle fill='blue' stroke='black' cx='1100' cy='0' r='5'/>
+  <!--5--><circle fill='blue' stroke='black' cx='920' cy='0' r='5'/>
+  <!--6--><circle fill='blue' stroke='black' cx='920' cy='-581' r='5'/>
+  <!--7--><circle fill='blue' stroke='black' cx='935' cy='-1189' r='5'/>
+  <!--8--><circle fill='blue' stroke='black' cx='666' cy='-405' r='5'/>
+  <!--9--><circle fill='blue' stroke='black' cx='560' cy='-405' r='5'/>
+  <!--10--><circle fill='blue' stroke='black' cx='313' cy='-1168' r='5'/>
+  <!--11--><circle fill='blue' stroke='black' cx='328' cy='-581' r='5'/>
+  <!--12--><circle fill='blue' stroke='black' cx='328' cy='0' r='5'/>
+  <!--13--><circle fill='blue' stroke='black' cx='148' cy='0' r='5'/>
+  <!--14--><circle fill='blue' stroke='black' cx='148' cy='-1456' r='5'/>
 
   <!-- draw straight lines between points -->
   <path fill='none' stroke='green' d='
-   M 152,0
+   M 377,-1456
 
   '/>
-  <path fill='none' stroke='green' d=' M 152,0 L 152,-1466
+  <path fill='none' stroke='green' d=' M 377,-1456 L 614,-728
   '/>
-  <path fill='none' stroke='green' d=' M 152,-1466 L 444,-1466
+  <path fill='none' stroke='green' d=' M 614,-728 L 870,-1456
   '/>
-  <path fill='none' stroke='green' d=' M 444,-1466 L 791,-428
+  <path fill='none' stroke='green' d=' M 870,-1456 L 1100,-1456
   '/>
-  <path fill='none' stroke='green' d=' M 791,-428 L 839,-283
+  <path fill='none' stroke='green' d=' M 1100,-1456 L 1100,0
   '/>
-  <path fill='none' stroke='green' d=' M 839,-283 L 861,-211
+  <path fill='none' stroke='green' d=' M 1100,0 L 920,0
   '/>
-  <path fill='none' stroke='green' d=' M 861,-211 L 886,-291
+  <path fill='none' stroke='green' d=' M 920,0 L 920,-581
   '/>
-  <path fill='none' stroke='green' d=' M 886,-291 L 939,-446
+  <path fill='none' stroke='green' d=' M 920,-581 L 935,-1189
   '/>
-  <path fill='none' stroke='green' d=' M 939,-446 L 1290,-1466
+  <path fill='none' stroke='green' d=' M 935,-1189 L 666,-405
   '/>
-  <path fill='none' stroke='green' d=' M 1290,-1466 L 1551,-1466
+  <path fill='none' stroke='green' d=' M 666,-405 L 560,-405
   '/>
-  <path fill='none' stroke='green' d=' M 1551,-1466 L 1551,0
+  <path fill='none' stroke='green' d=' M 560,-405 L 313,-1168
   '/>
-  <path fill='none' stroke='green' d=' M 1551,0 L 1364,0
+  <path fill='none' stroke='green' d=' M 313,-1168 L 328,-581
   '/>
-  <path fill='none' stroke='green' d=' M 1364,0 L 1364,-1227
+  <path fill='none' stroke='green' d=' M 328,-581 L 328,0
   '/>
-  <path fill='none' stroke='green' d=' M 1364,-1227 L 938,0
+  <path fill='none' stroke='green' d=' M 328,0 L 148,0
   '/>
-  <path fill='none' stroke='green' d=' M 938,0 L 763,0
-  '/>
-  <path fill='none' stroke='green' d=' M 763,0 L 339,-1248
-  '/>
-  <path fill='none' stroke='green' d=' M 339,-1248 L 339,0
+  <path fill='none' stroke='green' d=' M 148,0 L 148,-1456
   '/>
 
   <!-- draw actual outline using lines and Bezier curves-->
   <path fill='black' stroke='black' fill-opacity='0.45'  stroke-width='2'  d='
- M 152,0
- L 152,-1466
- L 444,-1466
- L 791,-428
- Q 839,-283 861,-211
- Q 886,-291 939,-446
- L 1290,-1466
- L 1551,-1466
- L 1551,0
- L 1364,0
- L 1364,-1227
- L 938,0
- L 763,0
- L 339,-1248
- L 339,0
- L 152,0
+ M 377,-1456
+ L 614,-728
+ L 870,-1456
+ L 1100,-1456
+ L 1100,0
+ L 920,0
+ L 920,-581
+ L 935,-1189
+ L 666,-405
+ L 560,-405
+ L 313,-1168
+ L 328,-581
+ L 328,0
+ L 148,0
+ L 148,-1456
+ L 377,-1456
  Z
 
   '/>
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='157' y='-5' stroke='none' fill='darkgreen'>
-  152,0  </text>
+  <text id='revision' x='382' y='-1461' stroke='none' fill='darkgreen'>
+  377,-1456  </text>
  </g>
 
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='157' y='-1471' stroke='none' fill='darkgreen'>
-  152,-1466  </text>
+  <text id='revision' x='619' y='-733' stroke='none' fill='darkgreen'>
+  614,-728  </text>
  </g>
 
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='449' y='-1471' stroke='none' fill='darkgreen'>
-  444,-1466  </text>
+  <text id='revision' x='875' y='-1461' stroke='none' fill='darkgreen'>
+  870,-1456  </text>
  </g>
 
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='796' y='-433' stroke='none' fill='darkgreen'>
-  791,-428  </text>
+  <text id='revision' x='1105' y='-1461' stroke='none' fill='darkgreen'>
+  1100,-1456  </text>
  </g>
 
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='844' y='-288' stroke='none' fill='darkgreen'>
-  839,-283  </text>
+  <text id='revision' x='1105' y='-5' stroke='none' fill='darkgreen'>
+  1100,0  </text>
  </g>
 
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='866' y='-216' stroke='none' fill='darkgreen'>
-  861,-211  </text>
+  <text id='revision' x='925' y='-5' stroke='none' fill='darkgreen'>
+  920,0  </text>
  </g>
 
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='891' y='-296' stroke='none' fill='darkgreen'>
-  886,-291  </text>
+  <text id='revision' x='925' y='-586' stroke='none' fill='darkgreen'>
+  920,-581  </text>
  </g>
 
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='944' y='-451' stroke='none' fill='darkgreen'>
-  939,-446  </text>
+  <text id='revision' x='940' y='-1194' stroke='none' fill='darkgreen'>
+  935,-1189  </text>
  </g>
 
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='1295' y='-1471' stroke='none' fill='darkgreen'>
-  1290,-1466  </text>
+  <text id='revision' x='671' y='-410' stroke='none' fill='darkgreen'>
+  666,-405  </text>
  </g>
 
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='1556' y='-1471' stroke='none' fill='darkgreen'>
-  1551,-1466  </text>
+  <text id='revision' x='565' y='-410' stroke='none' fill='darkgreen'>
+  560,-405  </text>
  </g>
 
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='1556' y='-5' stroke='none' fill='darkgreen'>
-  1551,0  </text>
+  <text id='revision' x='318' y='-1173' stroke='none' fill='darkgreen'>
+  313,-1168  </text>
  </g>
 
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='1369' y='-5' stroke='none' fill='darkgreen'>
-  1364,0  </text>
+  <text id='revision' x='333' y='-586' stroke='none' fill='darkgreen'>
+  328,-581  </text>
  </g>
 
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='1369' y='-1232' stroke='none' fill='darkgreen'>
-  1364,-1227  </text>
+  <text id='revision' x='333' y='-5' stroke='none' fill='darkgreen'>
+  328,0  </text>
  </g>
 
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='943' y='-5' stroke='none' fill='darkgreen'>
-  938,0  </text>
+  <text id='revision' x='153' y='-5' stroke='none' fill='darkgreen'>
+  148,0  </text>
  </g>
 
  <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='768' y='-5' stroke='none' fill='darkgreen'>
-  763,0  </text>
- </g>
-
- <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='344' y='-1253' stroke='none' fill='darkgreen'>
-  339,-1248  </text>
- </g>
-
- <g font-family='SVGFreeSansASCII,sans-serif' font-size='10'>
-  <text id='revision' x='344' y='-5' stroke='none' fill='darkgreen'>
-  339,0  </text>
+  <text id='revision' x='153' y='-1461' stroke='none' fill='darkgreen'>
+  148,-1456  </text>
  </g>
 
  </g>
