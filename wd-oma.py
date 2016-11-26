@@ -10,7 +10,11 @@ workfolw for assess sequence identity and topface identity for a group of orthol
 5. plot sequence logo of topface
 6. plot scatter and do t-test
 
+notes:
+when calculating identity from msa, gaps are ommited if it is present in both seqs, otherwise retained
+
 usage: python wd-oma.py wd-oma.fasta wd-oma.wdsp
+
 """
 
 import sys
@@ -49,8 +53,10 @@ def remove_redundant(seqs,cutoff,good_list):
 
     def get_pim(seqs):
         def pim(seq1,seq2):
-            identity = len([i for i,s in enumerate(seq1) if s == seq2[i]])
-            return identity*1.0/len(seq1)
+            identity = len([i for i,s in enumerate(seq1) if s == seq2[i] and s !='-'])
+            lens = len([i for i,s in enumerate(seq1) if i != '-' and seq2[i] != '-'])
+            return identity*1.0/lens
+
         scores = []
         seqlen = len(seqs)
         for i in range(seqlen):
