@@ -3,7 +3,7 @@
 
 """
 workfolw for assess sequence identity and topface identity for a group of orthologs of WD40 proteins
-1. read msa
+1. read msa, put sequences with gaps at positions where most sequences do not have gaps (90%) into bad_list
 2. get non-redundant list of proteins at specific cutoff
 3. read wdsp and get topfaces and pairwise topface identity
 4. plot heatmap of sequence identity and topface identity
@@ -19,7 +19,6 @@ usage: python wd-oma.py wd-oma.fasta wd-oma.wdsp
 
 import sys
 import os
-import lt
 import seaborn as sns
 import pandas as pd
 import numpy as np
@@ -27,6 +26,7 @@ import matplotlib.pyplot as plt
 import scipy
 import scipy.cluster.hierarchy as sch
 import scipy.spatial.distance as spd
+from collections import OrderedDict
 
 from matplotlib.path import Path
 from matplotlib import ticker
@@ -49,29 +49,48 @@ def read_msa(msa_f):
 
         return seqs
 
-def remove_redundant(seqs,cutoff,good_list):
 
-    def get_pim(seqs):
-        def pim(seq1,seq2):
-            identity = len([i for i,s in enumerate(seq1) if s == seq2[i] and s !='-'])
-            lens = len([i for i,s in enumerate(seq1) if i != '-' and seq2[i] != '-'])
-            return identity*1.0/lens
+def get_badlist(seqs,cutoff=0.90):
+    seq_number = len(seqs)
+    seq_len = len(seqs[0][1])
 
-        scores = []
-        seqlen = len(seqs)
-        for i in range(seqlen):
-            score_i = []
-            for j in range(seqlen):
-                if j < i:
-                    score_i.append(scores[j][i])
-                elif j > i:
-                    score_i.append(pim(seqs[i][1],seqs[j][1]))
-                else:
-                    score_i.append(1.0)
-            scores.append(score_i)
-        return scores
+    positions = [[seqs[i][1][j]
+                  for i in range(seq_number)] for j in range(seq_len)]
+    pfm = [len([a for a in pos if a != '-'])*1.0/seq_number for pos in positions]
+    good_pos = [i for i,pos in enumerate(pfm) if pos >= cutoff]
+    bad_list = []
+    for i in good_pos:
+        for pro,seq in seqs:
+            if seq[i] == '-':
+                bad_list.append(pro)
+    print set(bad_list)
+    return list(set(bad_list))
 
-    def get_neighbors(seqs,scores,cutoff):
+
+def get_pim(seqs):
+    def pim(seq1,seq2):
+        identity = len([i for i,s in enumerate(seq1) if s == seq2[i] and s !='-'])
+        lens = len([i for i,s in enumerate(seq1) if i != '-' and seq2[i] != '-'])
+        return identity*1.0/lens
+
+    scores = []
+    seqlen = len(seqs)
+    for i in range(seqlen):
+        score_i = []
+        for j in range(seqlen):
+            if j < i:
+                score_i.append(scores[j][i])
+            elif j > i:
+                score_i.append(pim(seqs[i][1],seqs[j][1]))
+            else:
+                score_i.append(1.0)
+        scores.append(score_i)
+    return scores
+
+
+def remove_redundancy(seqs,scores,cutoff,good_list=[],bad_list=[]):
+
+    def get_neighbors():
         neighbors = []
         for i,seq in enumerate(seqs):
             seq_neighbors = [seq[0]]
@@ -82,40 +101,82 @@ def remove_redundant(seqs,cutoff,good_list):
             neighbors.append(seq_neighbors)
         return neighbors
 
-    def remove_redundancy(seqs,scores,neighbors,good_list):
-        while max([len(n) for n in neighbors]) > 1:
-            neighbors = sorted(neighbors,key=lambda x: len(x),reverse=True)
-            for seq in neighbors[0][1:]:
-                if not seq in good_list:
-                    for n in neighbors:
-                        if seq in n:
-                            n.pop(n.index(seq))
-                    neighbors = [n for n in neighbors if len(n) > 0]
-                    neighbors = [neighbors[0]] + [n for n in neighbors[1:] if not n[0] == seq]
-            if len(neighbors[0]) > 1:
-                for seq in neighbors[0][:-1]:
-                    for n in neighbors:
-                        if seq in n:
-                            n.pop(n.index(seq))
-                    neighbors = [n for n in neighbors if len(n) > 0]
-                    neighbors = [n for n in neighbors if not n[0] == seq]
 
-        nr_list = set([n[0] for n in neighbors])
-        nr_seqs = [seq for seq in seqs if seq[0] in nr_list ]
-        nr_index = [i for i,seq in enumerate(seqs) if seq[0] in nr_list]
-        nr_scores = [[score_i[i] for i in nr_index] for score_i in scores]
-        nr_scores = [nr_scores[i] for i in nr_index]
-        return nr_seqs,nr_scores
+    def sort_good_bad(neighbor_list):
+        new_good_list = [g for g in good_list if not g in bad_list]
+        new_bad_list = [g for g in good_list if g in bad_list] + bad_list
+        good = [n for n in neighbor_list if n in new_good_list]
+        bad = [n for n in neighbor_list if n in new_bad_list]
+        middle = [n for n in neighbor_list if (not n in new_good_list) and (not n in new_bad_list)]
+        return good+middle+bad
 
-    scores = get_pim(seqs)
-    neighbors = get_neighbors(seqs,scores,cutoff)
-    nr_seqs,nr_scores = remove_redundancy(seqs,scores,neighbors,good_list)
+    neighbors = get_neighbors()
 
+    while max([len(n) for n in neighbors]) > 1:
+        neighbors = sorted(neighbors,key=lambda x: len(x),reverse=True)
+        neighbors = map(sort_good_bad,neighbors)
+        for seq in neighbors[0][1:]:
+            if not seq in good_list:
+                for n in neighbors:
+                    if seq in n:
+                        n.pop(n.index(seq))
+                neighbors = [n for n in neighbors if len(n) > 0]
+        if len(neighbors[0]) > 1:
+            for seq in neighbors[0][:-1]:
+                for n in neighbors:
+                    if seq in n:
+                        n.pop(n.index(seq))
+                neighbors = [n for n in neighbors if len(n) > 0]
+
+
+    nr_list = set([n[0] for n in neighbors])
+    nr_seqs = [seq for seq in seqs if seq[0] in nr_list ]
+    nr_index = [i for i,seq in enumerate(seqs) if seq[0] in nr_list]
+    nr_scores = [[score_i[i] for i in nr_index] for score_i in scores]
+    nr_scores = [nr_scores[i] for i in nr_index]
     return nr_seqs,nr_scores
 
 def get_wdsp(wdsp_f,nr_list):
+
     with open(wdsp_f) as w_f:
-        wdsp = Wdsp(w_f)
+        wdsp_lines = w_f.readlines()
+        wdsp_lines = [line.rstrip('\r\n') for line in wdsp_lines if line]
+        wdsp_hotspot = OrderedDict()
+        blade = OrderedDict()
+        for line in wdsp_lines:
+            words = line.split()
+            if len(words) >= 2 and words[0] == '>':
+                pro_name = words[1]
+                pro_blades = []
+                pro_seq = ''
+            elif len(words) > 4:
+                pro_blades.append(words[3:-1])
+                pro_seq += ''.join(words[3:-1])
+                if pro_name in nr_list:
+                    blade[pro_name] = pro_blades
+        for pro_name,pro_blades in blade.iteritems():
+            hotspot = []
+            for blade in pro_blades:
+                R1 = blade[2][1]
+                R1_2 = blade[1][-1]
+                if len(blade[5]) <= 5 and blade[5][1] == 'D':
+                    D_1 = blade[5][0]
+                elif len(blade[5]) == 3 or len(blade[5]) == 2:
+                    D_1 = blade[5][0]
+                elif 3 <= len(blade[5]) <= 5 and blade[5][2] == 'D':
+                    D_1 = blade[5][1]
+                elif 4 <= len(blade[5]) <= 5 and blade[5][3] == 'D':
+                    D_1 = blade[5][2]
+                elif 5 <= len(blade[5]) <= 5 and blade[5][4] == 'D':
+                    Di_1 = blade[5][3]
+                elif len(blade[5]) <= 5:
+                    D_1 = blade[5][1]
+                elif len(blade[5]) <= 7:
+                    D_1 = blade[5][0]
+                else:
+                    D_1 = '*'
+                hotspot.append(R1+R1_2+D_1)
+            wdsp_hotspot[pro_name] = hotspot
 
     def get_hots_pim(hots):
 
@@ -139,7 +200,7 @@ def get_wdsp(wdsp_f,nr_list):
             scores.append(score_i)
         return scores
 
-    hots = [(k,wdsp.hotspots[k]) for k in nr_list]
+    hots = [(k,wdsp_hotspot[k]) for k in nr_list]
     scores = get_hots_pim(hots)
     return hots,scores
 
@@ -319,7 +380,9 @@ def main():
     filename = os.path.splitext(os.path.split(sys.argv[-2])[1])[0]
     cutoff = 0.9
     good_list=[]
-    nr_seqs,nr_seq_scores = remove_redundant(seqs,cutoff,good_list)
+    scores = get_pim(seqs)
+    bad_list = get_badlist(seqs)
+    nr_seqs,nr_seq_scores = remove_redundancy(seqs,scores,cutoff,good_list,bad_list)
     nr_list = [seq[0] for seq in nr_seqs]
     nr_hots,nr_hots_scores = get_wdsp(sys.argv[-1],nr_list)
     plot_heatmap(nr_list,nr_seq_scores,filename+'_seq'+'_'+str(cutoff))
