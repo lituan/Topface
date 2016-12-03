@@ -34,8 +34,6 @@ from matplotlib.patches import PathPatch
 from svgpath2mpl import parse_path
 from xml.dom import minidom
 
-from wdsp import Wdsp
-
 
 def read_msa(msa_f):
     with open(msa_f) as o_f:
@@ -392,8 +390,9 @@ def main():
     plotlogo(nr_hots,filename+'_topface_logo'+'_'+str(cutoff))
     write_result(nr_seqs,filename+'_nr'+'_'+str(cutoff))
 
-main()
 
+if __name__ == "__main__":
+    main()
 
 
 

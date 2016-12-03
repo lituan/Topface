@@ -22,8 +22,10 @@ import sys
 def read_wdsp(wdsp_f):
     with open(wdsp_f) as o_f:
         lines = o_f.readlines()
-        lines = [line.rstrip('\r\n') for line in lines if line]
+        lines = [line.rstrip('\r\n') for line in lines]
+        lines = [line for line in lines if line]
         blades = [line.split() for line in lines]
+        print blades
         return blades
 
 def read_msa(msa_f):
@@ -52,7 +54,10 @@ def match(blades,seq):
                 pointer = pointer + index+1
             blade_index.append(b_index)
 
-        blade_index.append(blade[-1])
+        try:
+            blade_index.append(blade[-1])
+        except:
+            print blade
         blades_index.append(blade_index)
 
     # move extra aa to loop instead of sheet
