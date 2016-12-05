@@ -86,53 +86,62 @@ def get_pim(seqs):
     return scores
 
 
-def remove_redundancy(seqs,scores,cutoff,good_list=[],bad_list=[]):
+def leaf(labels, similarities, cutoff):
 
-    def get_neighbors():
-        neighbors = []
-        for i,seq in enumerate(seqs):
-            seq_neighbors = [seq[0]]
-            for j in range(len(seqs)):
-                if j != i:
-                    if scores[i][j] > cutoff:
-                        seq_neighbors.append(seqs[j][0])
-            neighbors.append(seq_neighbors)
-        return neighbors
+    matrix = [map(lambda x: 1 if x > cutoff else 0, row)
+              for row in similarities]
+    for i in range(len(matrix)):
+        matrix[i][i] = 0
 
+    adjlist = [[i for i,n in enumerate(row ) if n] for row in matrix]
+    neighbors = []
+    remove = []
+    # transform adjlist to set
+    neighbors = [set(n) for i, n in enumerate(adjlist)]
+    # detect possible max clique
+    max_neighbors = max(len(l) for l in neighbors)
+    # the possible clique size is 2 to max_neighbors+1, so the possible
+    # neighborsize is 1 to max_neighbors
+    for clique_num in range(1, max_neighbors + 1):
+        nodes_index = set([i for i, l in enumerate(
+            neighbors) if len(l) == clique_num])
+        for i in nodes_index:
+            if not i in remove:  # do not compute removed vertex
+                # a clique is set of vertex connecting to each other
+                nodesofinterest = neighbors[i].union([i])
+                if set.intersection(*[neighbors[i].union([i]) for i in nodesofinterest]) == nodesofinterest:
+                    # detect vertex without linking to outside vertex
+                    in_clique = [i for i in nodesofinterest if not neighbors[
+                        i].union([i]).difference(nodesofinterest)]
+                    # keep one of the vertex without linking to outside vertex,
+                    # remove rest
+                    if in_clique:
+                        keep = [in_clique[0]]
+                        remove_iter = nodesofinterest.difference(set(keep))
+                        for r in remove_iter:
+                            if not r in remove:  # do not compute removed vertex
+                                for i in range(len(neighbors)):
+                                    if r in neighbors[i]:
+                                        neighbors[i].remove(r)
+                        remove += remove_iter
 
-    def sort_good_bad(neighbor_list):
-        new_good_list = [g for g in good_list if not g in bad_list]
-        new_bad_list = [g for g in good_list if g in bad_list] + bad_list
-        good = [n for n in neighbor_list if n in new_good_list]
-        bad = [n for n in neighbor_list if n in new_bad_list]
-        middle = [n for n in neighbor_list if (not n in new_good_list) and (not n in new_bad_list)]
-        return good+middle+bad
+    # continue to remove the one with most neighbors until no vertex has
+    # neighbors, removed vertex is not considered
+    while max([len(r) for i, r in enumerate(neighbors) if not i in remove]) > 0:
 
-    neighbors = get_neighbors()
+        max_index = max([(len(r), i) for i, r in enumerate(neighbors) if not i in remove])[1]
+        remove.append(max_index)
+        for i in set(range(len(neighbors))).difference(set(remove)): # do not compute remove vertex
+            if max_index in neighbors[i]:
+                neighbors[i].remove(max_index)
 
-    while max([len(n) for n in neighbors]) > 1:
-        neighbors = sorted(neighbors,key=lambda x: len(x),reverse=True)
-        neighbors = map(sort_good_bad,neighbors)
-        for seq in neighbors[0][1:]:
-            if not seq in good_list:
-                for n in neighbors:
-                    if seq in n:
-                        n.pop(n.index(seq))
-                neighbors = [n for n in neighbors if len(n) > 0]
-        if len(neighbors[0]) > 1:
-            for seq in neighbors[0][:-1]:
-                for n in neighbors:
-                    if seq in n:
-                        n.pop(n.index(seq))
-                neighbors = [n for n in neighbors if len(n) > 0]
+    nr_similarities = [similarities[i] for i in range(len(similarities)) if not i in remove]
+    nr_similarities = [[row[i] for i in range(
+        len(similarities)) if not i in remove] for row in nr_similarities]
+    nr_labels = [labels[i] for i in range(len(similarities)) if not i in remove]
 
+    return nr_labels, nr_similarities
 
-    nr_list = set([n[0] for n in neighbors])
-    nr_seqs = [seq for seq in seqs if seq[0] in nr_list ]
-    nr_index = [i for i,seq in enumerate(seqs) if seq[0] in nr_list]
-    nr_scores = [[score_i[i] for i in nr_index] for score_i in scores]
-    nr_scores = [nr_scores[i] for i in nr_index]
-    return nr_seqs,nr_scores
 
 def get_wdsp(wdsp_f,nr_list):
 
@@ -375,13 +384,14 @@ def write_result(nr_seqs,filename):
 
 def main():
     seqs = read_msa(sys.argv[-2])
+    seqnames = [seq[0] for seq in seqs]
     filename = os.path.splitext(os.path.split(sys.argv[-2])[1])[0]
     cutoff = 0.9
     good_list=[]
     scores = get_pim(seqs)
     bad_list = get_badlist(seqs)
-    nr_seqs,nr_seq_scores = remove_redundancy(seqs,scores,cutoff,good_list,bad_list)
-    nr_list = [seq[0] for seq in nr_seqs]
+    nr_list,nr_seq_scores = leaf(seqnames,scores,cutoff)
+    nr_seqs = [seq for seq in seqs if seq[0] in nr_list]
     nr_hots,nr_hots_scores = get_wdsp(sys.argv[-1],nr_list)
     plot_heatmap(nr_list,nr_seq_scores,filename+'_seq'+'_'+str(cutoff))
     plot_heatmap(nr_list,nr_hots_scores,filename+'_topface'+'_'+str(cutoff))

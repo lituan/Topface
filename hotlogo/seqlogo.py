@@ -133,6 +133,8 @@ def plot_seqlogo(ax, pfm, charwidth=1.0, xlim='',**kwargs):
     # set x y label
     ax.set_xlabel('position')
     ax.set_ylabel('bits')
+    # aspect
+    ax.set_aspect(1)
 
 
 def read_msa(msa_f):
@@ -154,6 +156,19 @@ def read_msa(msa_f):
         pfm = pd.DataFrame(pfm, columns=AA)
         return pfm
 
+def plotlogos(seqs,filename):
+    seq_number = len(seqs)
+    seq_len = len(seqs[0][1])
+    positions = [[seqs[i][1][j]
+                  for i in range(seq_number)] for j in range(seq_len)]
+    pfm = [[pos.count(a) * 1.0 / seq_number for a in AA] for pos in positions]
+    pfm = pd.DataFrame(pfm, columns=AA)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    plot_seqlogo(ax, pfm)
+    plt.savefig(filename+'.png')
+    plt.close('all')
 
 def main():
     pfm = read_msa(sys.argv[-1])
@@ -177,4 +192,6 @@ def main():
         plt.savefig('test.png')
     plt.close('all')
 
-main()
+
+if __name__ == "__main__":
+    main()
