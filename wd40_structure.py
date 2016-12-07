@@ -22,8 +22,8 @@ def rcsb_customreport(pdbids):
     pdbids be a string '1A0R:1,1B9X:1,1B9Y:1,1C15:1,1CWW:1,1CY5:1'
     return format:
     [['structureId','chainId','uniprotAcc','resolution','chainLength','releaseDate'],
-     ['"1A0R"', '"B"', '"P62871"', '"2.8"', '"340"', '"1998-12-30"'],
-     ['"1B9X"', '"A"', '"P62871"', '"3.0"', '"340"', '"1999-02-23"']]
+     ['1A0R', 'B', 'P62871', '2.8', '340', '1998-12-30'],
+     ['1B9X', 'A', 'P62871', '3.0', '340', '1999-02-23']]
     """
 
     url = 'http://www.rcsb.org/pdb/rest/customReport.csv?'
@@ -41,6 +41,7 @@ def rcsb_customreport(pdbids):
     lines = [line for line in lines if line]
     lines = [line.split(',') for line in lines]
     lines = [[w.strip('"') for w in line] for line in lines]
+    lines = [line for line in lines if line[2]]
     return lines
 
 def rcsb_acc(accs):
@@ -59,18 +60,39 @@ def rcsb_acc(accs):
     pdbids = pdbids.replace('\n',',')
     return pdbids
 
+def rcsb_acc_customreport(accs):
+    """
+    when use uniprot accessions to query pdbs and use returned pdbs to get custom report, some chimera pdb will return unrelated uniprot accessions
+    """
+    pdbids = rcsb_acc(accs)
+    lines = rcsb_customreport(pdbids)
+    # remove accs associated with chimera pdbs
+    new_lines = [lines[0]]
+    for line in lines[1:]:
+        if '#' in line[2]:
+            line2s = line[2].split('#')
+            for l in line2s:
+                new_lines.append(line[0:2]+[l]+line[3:])
+        else:
+            new_lines.append(line)
+    real_lines = [line for line in new_lines if line[2] in accs]
+    return real_lines
+
 def rcsb_check_acc(accs,resolution_cutoff=5.0,seq_len_cutoff=200):
     """
     accs be a list,
     check if related pdb chains satisfies certain cutoff, like resoution, seq_len_cutoff
     """
-    pdbids = rcsb_acc(accs)
-    results = rcsb_customreport(pdbids)
+    results = rcsb_acc_customreport(accs)
     lines = [line for line in results[1:]]
     lines = [line for line in lines if line[3]] # select entries with resolution infomation
     lines = [line for line in lines if float(line[3]) < resolution_cutoff]  # select entries with resolution better than resolution_cutoff
     lines = [line for line in lines if float(line[4]) > seq_len_cutoff] # select entries with sequence length longer than seq_len_cutoff
     good_accs = set([line[2] for line in lines])
+    good_accs = map(lambda x: [x] if not "#" in x else x.split('#'), good_accs)
+    good_accs = ','.join([','.join(a) for a in good_accs]).split(',')
+    good_accs = set.intersection(*[accs,good_accs])
+
     return good_accs
 
 
@@ -82,9 +104,9 @@ def rcsb_pfam():
     url = 'http://www.rcsb.org/pdb/rest/search'
     pfam_query = """
     <orgPdbQuery>
-      <queryType>org.pdb.query.simple.PfamIdQuery</queryType>
-      <description>Pfam Accession Number:  PF00400/description>
-        <pfamID>PF00400</pfamID>
+    <queryType>org.pdb.query.simple.PfamIdQuery</queryType>
+    <description>Pfam Accession Number:  PF00400</description>
+    <pfamID>PF00400</pfamID>
     </orgPdbQuery>
     """
     req = urllib2.Request(url,data=pfam_query)
@@ -93,7 +115,7 @@ def rcsb_pfam():
     pdbids = result_pdb.replace('\n',',')
     # get customed report
     lines = rcsb_customreport(pdbids)
-    rcsb_pfam_acc = set([line[2].strip('"') for line in lines])
+    rcsb_pfam_acc = set([line[2] for line in lines[1:]])
     return rcsb_pfam_acc
 
 
@@ -157,11 +179,10 @@ def rcsb_wdsp(wd_id_f):
     wdsp_ids = read_wdsp_id(wd_id_f)
     wdsp_ids = ','.join(wdsp_ids)
     mapped_ids = uniprot_map(wdsp_ids,'ACC+ID','ACC')
-    wdsp_acc = [mi[1] for mi in mapped_ids]
-    pdbids = rcsb_acc(wdsp_acc)
+    wdsp_accs = [mi[1] for mi in mapped_ids]
 
-    lines = rcsb_customreport(pdbids)
-    rcsb_wdsp_acc = set([line[2].strip('"') for line in lines])
+    lines = rcsb_acc_customreport(wdsp_accs)
+    rcsb_wdsp_acc = set([line[2] for line in lines])
     return rcsb_wdsp_acc
 
 def rcsb_wdsp(wdsp_acc_f):
@@ -175,11 +196,10 @@ def rcsb_wdsp(wdsp_acc_f):
             lines = [line for line in lines if line]
             lines = [line.split()[0] for line in lines]
             return lines
-    wdsp_acc = read_wdsp_acc(wdsp_acc_f)
-    pdbids = rcsb_acc(wdsp_acc)
+    wdsp_accs = read_wdsp_acc(wdsp_acc_f)
 
-    lines = rcsb_customreport(pdbids)
-    rcsb_wdsp_acc = set([line[2].strip('"') for line in lines])
+    lines = rcsb_acc_customreport(wdsp_accs)
+    rcsb_wdsp_acc = set([line[2] for line in lines])
     return rcsb_wdsp_acc
 
 def plot_venn(set1,set2,set3,labels,filename):
@@ -193,7 +213,7 @@ def plot_venn(set1,set2,set3,labels,filename):
 def main():
     rcsb_pfam_acc = rcsb_pfam()
     uniprot_wd_acc = uniprot_wd40()
-    rcsb_wdsp_acc = rcsb_wdsp('wd648_id.txt')
+    rcsb_wdsp_acc = rcsb_wdsp('wd648_acc.list')
 
     total_accs = set.union(rcsb_pfam_acc,uniprot_wd_acc,rcsb_wdsp_acc)
     good_accs = rcsb_check_acc(total_accs,resolution_cutoff=5.0,seq_len_cutoff=200)
