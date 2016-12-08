@@ -147,37 +147,26 @@ def read_msa(msa_f):
                 for i, n in enumerate(pro_line_num[:-1])]
         seqs = [(seq[0][1:], ''.join(seq[1:])) for seq in seqs]
 
-        seq_number = len(seqs)
-        seq_len = len(seqs[0][1])
-        positions = [[seqs[i][1][j]
-                      for i in range(seq_number)] for j in range(seq_len)]
-        pfm = [[pos.count(a) * 1.0 / seq_number for a in AA] for pos in positions]
-        pfm = [pos for pos in pfm if sum(pos) >= 0.95]
-        pfm = pd.DataFrame(pfm, columns=AA)
-        return pfm
+        return seqs
 
-def plotlogos(seqs,filename):
-    seq_number = len(seqs)
+def plotlogos(seqs,filename,mask_cutoff=0):
+    seq_num = len(seqs)
     seq_len = len(seqs[0][1])
     positions = [[seqs[i][1][j]
-                  for i in range(seq_number)] for j in range(seq_len)]
-    pfm = [[pos.count(a) * 1.0 / seq_number for a in AA] for pos in positions]
+                  for i in range(seq_num)] for j in range(seq_len)]
+    pfm = [[pos.count(a) * 1.0 / seq_num for a in AA] for pos in positions]
+    pfm = [pos for pos in pfm if sum(pos) > 0]
+    pfm = [pos for pos in pfm if sum(pos) >= mask_cutoff]
     pfm = pd.DataFrame(pfm, columns=AA)
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    plot_seqlogo(ax, pfm)
-    plt.savefig(filename+'.png')
-    plt.close('all')
-
-def main():
-    pfm = read_msa(sys.argv[-1])
     pfm_len = len(pfm)
     plot_len = 80
     subplots = pfm_len/plot_len + 1
     pfm = [pfm[i:i+plot_len] for i in range(0,pfm_len,plot_len)]
 
-    fig = plt.figure(figsize=(80,10*subplots),tight_layout=True)
+    figheight = 3
+    figwidth = figheight*plot_len/4.5
+    fig = plt.figure(figsize=(figwidth,figheight*subplots),tight_layout=True)
     # fig = plt.figure(tight_layout=True)
     params = {'axes.labelsize':30,
               'xtick.labelsize':30,
@@ -189,8 +178,33 @@ def main():
         # ax.set_aspect(1)
         # ax.set_xlabel('position',labelsize=40)
         # ax.set_ylabel('bits',labelsize=40)
-        plt.savefig('test.png')
+    plt.savefig(filename+'.png',dpi=300)
     plt.close('all')
+
+def plotlogo(seqs,filename,mask_cutoff=0):
+
+    seq_num = len(seqs)
+    seq_len = len(seqs[0][1])
+    positions = [[seqs[i][1][j]
+                  for i in range(seq_num)] for j in range(seq_len)]
+    pfm = [[pos.count(a) * 1.0 / seq_num for a in AA] for pos in positions]
+    pfm = [pos for pos in pfm if sum(pos) > 0]
+    pfm = [pos for pos in pfm if sum(pos) >= mask_cutoff]
+    pfm = pd.DataFrame(pfm, columns=AA)
+
+    figheight = 3
+    figwidth = figheight*seq_len/4.5
+    fig = plt.figure(figsize=(figwidth,figheight))
+    ax = fig.add_subplot(111)
+    plot_seqlogo(ax, pfm)
+    plt.savefig(filename+'.png',dpi=300,bbox_inches='tight')
+    plt.close('all')
+
+def main():
+    seqs = read_msa(sys.argv[-1])
+    filename = os.path.splitext(os.path.split(sys.argv[-1])[1])[0]
+    plotlogo(seqs,filename)
+
 
 
 if __name__ == "__main__":
