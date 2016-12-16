@@ -92,6 +92,8 @@ def main():
         total_repeat += w
     # if an entry apears in n different querys, its score is n
     wd40s_score = [[] for i in range(10)]
+    wd40s_score = align_lis_lis(wd40s_score)
+    longest = max(map(len,wd40s_score))
     for i in total:
         num = total_repeat.count(i)
         wd40s_score[num-1].append(i)
@@ -104,7 +106,6 @@ def main():
 
     wd40s = align_lis_lis(wd40s)
     longest = max(map(len,wd40s))
-
     with open('uniprot_wd40.txt','w') as w_f:
         print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}{6:<20}{7:<20}{8:<20}{9:<20}'.format(keywords[0],keywords[1],keywords[2],keywords[3],keywords[4],keywords[5],keywords[6],keywords[7],keywords[8],keywords[9])
         for i in range(longest):
