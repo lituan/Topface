@@ -86,14 +86,6 @@ def main():
                 continue
             break
 
-    wd40s = align_lis_lis(wd40s)
-    longest = max(map(len,wd40s))
-
-    with open('uniprot_wd40.txt','w') as w_f:
-        print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}{6:<20}{7:<20}{8:<20}{9:<20}'.format(keywords[0],keywords[1],keywords[2],keywords[3],keywords[4],keywords[5],keywords[6],keywords[7],keywords[8],keywords[9])
-        for i in range(longest):
-            print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}{6:<20}{7:<20}{8:<20}{9:<20}'.format(wd40s[0][i],wd40s[1][i],wd40s[2][i],wd40s[3][i],wd40s[4][i],wd40s[5][i],wd40s[6][i],wd40s[7][i],wd40s[8][i],wd40s[9][i])
-
     total = set.union(*map(set,wd40s))
     total_repeat = []
     for w in wd40s:
@@ -108,6 +100,16 @@ def main():
         print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}{6:<20}{7:<20}{8:<20}{9:<20}'.format(scores[0],scores[1],scores[2],scores[3],scores[4],scores[5],scores[6],scores[7],scores[8],scores[9])
         for i in range(longest):
             print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}{6:<20}{7:<20}{8:<20}{9:<20}'.format(wd40s_score[0][i],wd40s_score[1][i],wd40s_score[2][i],wd40s_score[3][i],wd40s_score[4][i],wd40s_score[5][i],wd40s_score[6][i],wd40s_score[7][i],wd40s_score[8][i],wd40s_score[9][i])
+
+
+    wd40s = align_lis_lis(wd40s)
+    longest = max(map(len,wd40s))
+
+    with open('uniprot_wd40.txt','w') as w_f:
+        print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}{6:<20}{7:<20}{8:<20}{9:<20}'.format(keywords[0],keywords[1],keywords[2],keywords[3],keywords[4],keywords[5],keywords[6],keywords[7],keywords[8],keywords[9])
+        for i in range(longest):
+            print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}{6:<20}{7:<20}{8:<20}{9:<20}'.format(wd40s[0][i],wd40s[1][i],wd40s[2][i],wd40s[3][i],wd40s[4][i],wd40s[5][i],wd40s[6][i],wd40s[7][i],wd40s[8][i],wd40s[9][i])
+
 
 
 
