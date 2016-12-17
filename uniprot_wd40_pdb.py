@@ -6,7 +6,9 @@ import os
 import urllib
 import urllib2
 
+import lt
 
+@lt.run_time
 def uniprot_wd40(key='pfam',pdb=False):
     """
     use annotations from different database to query WD40 in uniprot
@@ -52,7 +54,6 @@ def uniprot_wd40(key='pfam',pdb=False):
 
     return lines
 
-
 def uniprot_txt_parser(uniprot_txt_lines):
     """
     parser protein family annotation and pdb annotation
@@ -70,15 +71,14 @@ def uniprot_txt_parser(uniprot_txt_lines):
     entry_line.append(len(uniprot_txt_lines))
     begin_end = [(begin,entry_line[i+1]) for i,begin in enumerate(entry_line[:-1])]
     for begin,end in begin_end:
+        acc = uniprot_txt_lines[begin+1].replace(';',' ').split()[1]
+        uniprot[acc] = {}
         for line in uniprot_txt_lines[begin:end]:
             line = line.rstrip('\r\n')
             line = line.rstrip('.')
             line = line.replace(';',' ')
             words = line.split()
-            if words[0] == 'AC':
-                acc = words[1]
-                uniprot[acc] = {}
-            elif words[0] == 'DR' and words[1] =='InterPro':
+            if words[0] == 'DR' and words[1] =='InterPro':
                 if uniprot[acc].has_key('interpro'):
                     uniprot[acc]['interpro'].append((words[2],1))
                 else:
@@ -118,26 +118,32 @@ def uniprot_txt_parser(uniprot_txt_lines):
     return uniprot
 
 
+@lt.run_time
 def uniprot_accs(accs):
-    results = ''
+    results = []
     for acc in accs:
         url = ' http://www.uniprot.org/uniprot/?'
         data ={
         'query':'id: '+ acc,
-        'columns':columns,
         'format':'txt',
         'compress':'no',
         'include':'no',
         }
         data = urllib.urlencode(data)
         req = urllib2.Request(url,data)
-        response = urllib2.urlopen(req)
-        r = response.readlines()
-        results += r
+        for i in range(10):
+            try:
+                response = urllib2.urlopen(req)
+                r = response.readlines()
+            except:
+                continue
+            results += r
+            break
 
     return results
 
 
+@lt.run_time
 def align_lis_lis(lis_lis):
     """align and trans nested list to print a table"""
     lis_lis = [[str(l) for l in lis]
@@ -158,6 +164,16 @@ def align_lis_lis(lis_lis):
     lis_lis = [[lis[i] for lis in aligned] for i in range(inner_lis_max_len)]
     return lis_lis
 
+@lt.run_time
+def write_lis_lis(lis_lis,filename,cols=[]):
+    new_lis_lis = align_lis_lis(lis_lis)
+    new_lis_lis = ['\t;'.join([lis_lis[i][j] for i in range(new_lis_lis)]) for j in range(len(new_lis_lis[0]))]
+    with open(filename+'.txt','w') as w_f:
+        if cols:
+            print >> w_f,'\t;'.join(cols)
+        for l in new_lis_lis:
+            print >> w_f,l
+
 def main():
     keywords = ['pfam','smart','supfam','interpro_repeat','interpro_domain','uniprot_repeat','uniprot_keyword','prosite1','prosite2','prosite3']
     # keywords= ['pfam','smart','supfam','prosite1','prosite2','prosite3']
@@ -171,12 +187,16 @@ def main():
             break
 
     total = set.union(*map(set,wd40s))
-    while True:
-        try:
-            total_txt= uniprot_accs(total)
-        except:
-            continue
-        break
+    total_txt= uniprot_accs(total)
+
+    # i = 10
+    # while i > 0 :
+        # try:
+            # total_txt= uniprot_accs(total)
+        # except:
+            # continue
+        # i -= 1
+        # break
 
     total_annotation = uniprot_txt_parser(total_txt)
     # select pdbs with length > 200
@@ -184,11 +204,18 @@ def main():
     for acc,anno in total_annotation.iteritems():
         good_pdbs = []
         for p in anno['pdb']:
-            for pi in p:
-                if pi[-2] - pi[-1] > 150:
-                    good_pdbs.append(pi)
+            try:
+                if int(p[-1]) - int(p[-2]) > 150:
+                    good_pdbs.append(p)
+            except:
+                print p
         if good_pdbs:
             wd40_pdbs.append((acc,good_pdbs))
+
+    with open('uniprot_good_pdbs.txt','w') as w_f:
+        for acc,good_pdbs in wd40_pdbs:
+            for good_pdb in good_pdbs:
+                print >> w_f,'\t;'.join([acc]+good_pdb)
 
     wd40s_good = [w[0] for w in wd40_pdbs]
 
@@ -199,24 +226,13 @@ def main():
     for w in wd40s:
         total_repeat += w
     # if an entry apears in n different querys, its score is n
-    wd40s_score = [[] for i in range(6)]
+    wd40s_score = [[] for i in range(10)]
     for i in total:
         num = total_repeat.count(i)
         wd40s_score[num-1].append(i)
-    wd40s_score = align_lis_lis(wd40s_score)
-    longest = max(map(len,wd40s_score))
-    scores = [str(i) for i in range(1,7)]
-    with open('uniprot_wd40_pdb_score.txt','w') as w_f:
-        print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}'.format(scores[0],scores[1],scores[2],scores[3],scores[4],scores[5])
-        for i in range(longest):
-            print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}'.format(wd40s_score[0][i],wd40s_score[1][i],wd40s_score[2][i],wd40s_score[3][i],wd40s_score[4][i],wd40s_score[5][i])
+    write_lis_lis(wd40s_score,'uniprot_wd40_pdb_score',[str(i) for i in range(1,11)])
 
-    wd40s = align_lis_lis(wd40s)
-    longest = max(map(len,wd40s))
-    with open('uniprot_wd40_pdb.txt','w') as w_f:
-        print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}'.format(keywords[0],keywords[1],keywords[2],keywords[3],keywords[4],keywords[5])
-        for i in range(longest):
-            print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}'.format(wd40s[0][i],wd40s[1][i],wd40s[2][i],wd40s[3][i],wd40s[4][i],wd40s[5][i])
+    write_lis_lis(wd40s,'uniprot_wd40_pdb',keywords)
 
 
 if __name__ == "__main__":

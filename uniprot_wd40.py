@@ -10,6 +10,9 @@ import urllib
 import urllib2
 import pandas as pd
 
+
+import lt
+@lt.run_time
 def uniprot_wd40(key='pfam',pdb=False):
     """
     use annotations from different database to query WD40 in uniprot
@@ -55,6 +58,7 @@ def uniprot_wd40(key='pfam',pdb=False):
 
     return lines
 
+@lt.run_time
 def align_lis_lis(lis_lis):
     """align and trans nested list to print a table"""
     lis_lis = [[str(l) for l in lis]
@@ -75,6 +79,16 @@ def align_lis_lis(lis_lis):
     lis_lis = [[lis[i] for lis in aligned] for i in range(inner_lis_max_len)]
     return lis_lis
 
+def write_lis_lis(lis_lis,filename,cols=[]):
+    new_lis_lis = align_lis_lis(lis_lis)
+    new_lis_lis = ['\t;'.join([lis_lis[i][j] for i in range(new_lis_lis)]) for j in range(len(new_lis_lis[0]))]
+    with open(filename+'.txt','w') as w_f:
+        if cols:
+            print >> w_f,'\t;'.join(cols)
+        for l in new_lis_lis:
+            print >> w_f,l
+
+@lt.run_time
 def main():
     keywords = ['pfam','smart','supfam','interpro_repeat','interpro_domain','uniprot_repeat','uniprot_keyword','prosite1','prosite2','prosite3']
     wd40s = []
@@ -92,28 +106,13 @@ def main():
         total_repeat += w
     # if an entry apears in n different querys, its score is n
     wd40s_score = [[] for i in range(10)]
-    wd40s_score = align_lis_lis(wd40s_score)
-    longest = max(map(len,wd40s_score))
     for i in total:
         num = total_repeat.count(i)
         wd40s_score[num-1].append(i)
-    scores = [str(i) for i in range(1,11)]
-    with open('uniprot_wd40_score.txt','w') as w_f:
-        print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}{6:<20}{7:<20}{8:<20}{9:<20}'.format(scores[0],scores[1],scores[2],scores[3],scores[4],scores[5],scores[6],scores[7],scores[8],scores[9])
-        for i in range(longest):
-            print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}{6:<20}{7:<20}{8:<20}{9:<20}'.format(wd40s_score[0][i],wd40s_score[1][i],wd40s_score[2][i],wd40s_score[3][i],wd40s_score[4][i],wd40s_score[5][i],wd40s_score[6][i],wd40s_score[7][i],wd40s_score[8][i],wd40s_score[9][i])
+    wd40s_score = align_lis_lis(wd40s_score)
+    write_lis_lis(wd40s_score,'uniprot_wd40_score',[str(i) for i in range(1,11)])
 
-
-    wd40s = align_lis_lis(wd40s)
-    longest = max(map(len,wd40s))
-    with open('uniprot_wd40.txt','w') as w_f:
-        print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}{6:<20}{7:<20}{8:<20}{9:<20}'.format(keywords[0],keywords[1],keywords[2],keywords[3],keywords[4],keywords[5],keywords[6],keywords[7],keywords[8],keywords[9])
-        for i in range(longest):
-            print >> w_f, '{0:<20}{1:<20}{2:<20}{3:<20}{4:<20}{5:<20}{6:<20}{7:<20}{8:<20}{9:<20}'.format(wd40s[0][i],wd40s[1][i],wd40s[2][i],wd40s[3][i],wd40s[4][i],wd40s[5][i],wd40s[6][i],wd40s[7][i],wd40s[8][i],wd40s[9][i])
-
-
-
-
+    write_lis_lis(wd40s,'uniprot_wd40',keywords)
 
 
 if __name__ == "__main__":
