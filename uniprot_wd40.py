@@ -58,35 +58,29 @@ def uniprot_wd40(key='pfam',pdb=False):
 
     return lines
 
+
 @lt.run_time
-def align_lis_lis(lis_lis):
-    """align and trans nested list to print a table"""
+
+def write_lis_lis(lis_lis,filename,cols=[]):
+    """align nested list to print a table"""
     lis_lis = [[str(l) for l in lis]
                for lis in lis_lis]  # trans every element to str
     #make all inner lists of the same length
     inner_lis_max_len = max(len(lis) for lis in lis_lis)
     lis_lis = [lis + (inner_lis_max_len - len(lis)) * [''] for lis in lis_lis]
-    #trans list, so that the elements of the same column are in one list
-    lis_lis = [[lis[i] for lis in lis_lis] for i in range(inner_lis_max_len)]
     #make element in the same list have the same length
     aligned = []
     for lis in lis_lis:
         width = max([len(l) for l in lis])
         lis = [l + (width - len(l)) * ' ' for l in lis]
         aligned.append(lis)
-    #trans list_list to the original list_list
-    inner_lis_max_len = max(len(lis) for lis in lis_lis)
-    lis_lis = [[lis[i] for lis in aligned] for i in range(inner_lis_max_len)]
-    return lis_lis
-
-def write_lis_lis(lis_lis,filename,cols=[]):
-    new_lis_lis = align_lis_lis(lis_lis)
-    new_lis_lis = ['\t;'.join([lis_lis[i][j] for i in range(new_lis_lis)]) for j in range(len(new_lis_lis[0]))]
+    new_lis_lis = [';'.join([aligned[i][j] for i in range(len(aligned))]) for j in range(len(aligned[0]))]
     with open(filename+'.txt','w') as w_f:
         if cols:
             print >> w_f,'\t;'.join(cols)
         for l in new_lis_lis:
             print >> w_f,l
+
 
 @lt.run_time
 def main():
