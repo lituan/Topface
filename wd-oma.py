@@ -159,22 +159,25 @@ def get_wdsp(wdsp_f,nr_list):
             for blade in pro_blades:
                 R1 = blade[2][1]
                 R1_2 = blade[1][-1]
-                if len(blade[5]) <= 5 and blade[5][1] == 'D':
-                    D_1 = blade[5][0]
-                elif len(blade[5]) == 3 or len(blade[5]) == 2:
-                    D_1 = blade[5][0]
-                elif 3 <= len(blade[5]) <= 5 and blade[5][2] == 'D':
-                    D_1 = blade[5][1]
-                elif 4 <= len(blade[5]) <= 5 and blade[5][3] == 'D':
-                    D_1 = blade[5][2]
-                elif 5 <= len(blade[5]) <= 5 and blade[5][4] == 'D':
-                    Di_1 = blade[5][3]
-                elif len(blade[5]) <= 5:
-                    D_1 = blade[5][1]
-                elif len(blade[5]) <= 7:
-                    D_1 = blade[5][0]
-                else:
-                    D_1 = '*'
+                try:
+                    if len(blade[5]) <= 5 and blade[5][1] == 'D':
+                        D_1 = blade[5][0]
+                    elif len(blade[5]) == 3 or len(blade[5]) == 2:
+                        D_1 = blade[5][0]
+                    elif 3 <= len(blade[5]) <= 5 and blade[5][2] == 'D':
+                        D_1 = blade[5][1]
+                    elif 4 <= len(blade[5]) <= 5 and blade[5][3] == 'D':
+                        D_1 = blade[5][2]
+                    elif 5 <= len(blade[5]) <= 5 and blade[5][4] == 'D':
+                        Di_1 = blade[5][3]
+                    elif len(blade[5]) <= 5:
+                        D_1 = blade[5][1]
+                    elif len(blade[5]) <= 7:
+                        D_1 = blade[5][0]
+                    else:
+                        D_1 = '*'
+                except:
+                    print 'bad wdsp: ', pro_name
                 hotspot.append(R1+R1_2+D_1)
             wdsp_hotspot[pro_name] = hotspot
 
@@ -378,19 +381,21 @@ def write_result(nr_seqs,filename):
 def main():
     seqs = read_msa(sys.argv[-2])
     filename = os.path.splitext(os.path.split(sys.argv[-2])[1])[0]
-    cutoff = 0.7
-    good_list=[]
-    scores = get_pim(seqs)
-    bad_list = get_badlist(seqs)
-    nr_seqs,nr_seq_scores = remove_redundancy(seqs,scores,cutoff,good_list,bad_list)
-    nr_list = [seq[0] for seq in nr_seqs]
-    nr_hots,nr_hots_scores = get_wdsp(sys.argv[-1],nr_list)
-    plot_heatmap(nr_list,nr_seq_scores,filename+'_seq'+'_'+str(cutoff))
-    plot_heatmap(nr_list,nr_hots_scores,filename+'_topface'+'_'+str(cutoff))
-    plot_scatter(matrix_to_pair(nr_seq_scores),matrix_to_pair(nr_hots_scores),filename+'_seq_topface_identity'+'_'+str(cutoff))
-    nr_hots = [[k,''.join(v)] for k,v in nr_hots]
-    plotlogo(nr_hots,filename+'_topface_logo'+'_'+str(cutoff))
-    write_result(nr_seqs,filename+'_nr'+'_'+str(cutoff))
+    for cutoff in [0.6,0.7,0.8,0.9]:
+    # for cutoff in [0.6]:
+        # cutoff = 0.7
+        good_list=[]
+        scores = get_pim(seqs)
+        bad_list = get_badlist(seqs)
+        nr_seqs,nr_seq_scores = remove_redundancy(seqs,scores,cutoff,good_list,bad_list)
+        nr_list = [seq[0] for seq in nr_seqs]
+        nr_hots,nr_hots_scores = get_wdsp(sys.argv[-1],nr_list)
+        plot_heatmap(nr_list,nr_seq_scores,filename+'_seq'+'_'+str(cutoff))
+        plot_heatmap(nr_list,nr_hots_scores,filename+'_topface'+'_'+str(cutoff))
+        plot_scatter(matrix_to_pair(nr_seq_scores),matrix_to_pair(nr_hots_scores),filename+'_seq_topface_identity'+'_'+str(cutoff))
+        nr_hots = [[k,''.join(v)] for k,v in nr_hots]
+        plotlogo(nr_hots,filename+'_topface_logo'+'_'+str(cutoff))
+        write_result(nr_seqs,filename+'_nr'+'_'+str(cutoff))
 
 main()
 
