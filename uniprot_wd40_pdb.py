@@ -182,15 +182,6 @@ def main():
     total = set.union(*map(set,wd40s))
     total_txt= uniprot_accs(total)
 
-    # i = 10
-    # while i > 0 :
-        # try:
-            # total_txt= uniprot_accs(total)
-        # except:
-            # continue
-        # i -= 1
-        # break
-
     total_annotation = uniprot_txt_parser(total_txt)
     # select pdbs with length > 200
     wd40_pdbs = []
@@ -215,14 +206,18 @@ def main():
     wd40s = map(lambda x: [xi for xi in x if xi in wd40s_good],wd40s)
 
     total = set.union(*map(set,wd40s))
-    total_repeat = []
-    for w in wd40s:
-        total_repeat += w
-    # if an entry apears in n different querys, its score is n
     wd40s_score = [[] for i in range(10)]
-    for i in total:
-        num = total_repeat.count(i)
-        wd40s_score[num-1].append(i)
+    def acc_score(acc):
+        i = 0
+        for w in wd40s:
+            if acc in w:
+                i += 1
+        return i
+    for acc in total:
+        num = acc_score(acc)
+        wd40s_score[num-1].append(acc)
+
+
     write_lis_lis(wd40s_score,'uniprot_wd40_pdb_score',[str(i) for i in range(1,11)])
 
     write_lis_lis(wd40s,'uniprot_wd40_pdb',keywords)

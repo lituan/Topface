@@ -81,7 +81,6 @@ def write_lis_lis(lis_lis,filename,cols=[]):
         for l in new_lis_lis:
             print >> w_f,l
 
-
 @lt.run_time
 def main():
     keywords = ['pfam','smart','supfam','interpro_repeat','interpro_domain','uniprot_repeat','uniprot_keyword','prosite1','prosite2','prosite3']
@@ -95,15 +94,17 @@ def main():
             break
 
     total = set.union(*map(set,wd40s))
-    total_repeat = []
-    for w in wd40s:
-        total_repeat += w
-    # if an entry apears in n different querys, its score is n
     wd40s_score = [[] for i in range(10)]
-    for i in total:
-        num = total_repeat.count(i)
-        wd40s_score[num-1].append(i)
-    wd40s_score = align_lis_lis(wd40s_score)
+    def acc_score(acc):
+        i = 0
+        for w in wd40s:
+            if acc in w:
+                i += 1
+        return i
+    for acc in total:
+        num = acc_score(acc)
+        wd40s_score[num-1].append(acc)
+
     write_lis_lis(wd40s_score,'uniprot_wd40_score',[str(i) for i in range(1,11)])
 
     write_lis_lis(wd40s,'uniprot_wd40',keywords)
