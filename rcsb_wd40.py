@@ -9,6 +9,7 @@ use different strategies to search WD40 structures in rcsb
 all search has additional restrictions: resolution below 3.5, chain length longer than 150, beta strands more than 14
 
 for uniprot accs, there are 10 different annotations, so each acc can be given a score according to the number of annotations
+caution: use resolution as restriction will eliminate EM structures and NMR structures
 """
 
 import sys
@@ -33,24 +34,31 @@ def rcsb_customreport(pdbids):
     url = 'http://www.rcsb.org/pdb/rest/customReport.csv?'
     data = {
         'pdbids':pdbids,
-        'customReportColumns':'structureId,uniprotAcc,entityId,resolution,chainLength,releaseDate,pfamAccession',
+        'customReportColumns':'structureId,uniprotAcc,entityId,resolution,chainLength,releaseDate',
         'service':'wsfile',
         'format':'csv',
     }
-    data = urllib.urlencode(data)
-    req = urllib2.Request(url,data)
-    response = urllib2.urlopen(req)
-    lines = response.readlines()
-    lines = [line.rstrip('\r\n') for line in lines]
-    lines = [line for line in lines if line]
-    lines = [line.split(',') for line in lines]
-    lines = [[w.strip('"') for w in line] for line in lines]
-
+    for i in range(10):
+        try:
+            print 'try get customrepror for the ',i,' time'
+            data = urllib.urlencode(data)
+            req = urllib2.Request(url,data)
+            response = urllib2.urlopen(req)
+            lines = response.readlines()
+            lines = [line.rstrip('\r\n') for line in lines]
+            lines = [line for line in lines if line]
+            lines = [line.split(',') for line in lines]
+            lines = [[w.strip('"') for w in line] for line in lines]
+        except:
+            continue
+        break
     return lines
 
 @lt.run_time
 def write_lis_lis(lis_lis,filename,cols=[]):
     """align nested list to print a table"""
+
+    lis_lis = [lis if lis else ['    '] for lis in lis_lis]
     lis_lis = [[str(l) for l in lis]
                for lis in lis_lis]  # trans every element to str
     #make all inner lists of the same length
@@ -123,7 +131,7 @@ def uniprot_wd40(key='pfam',pdb=False):
     return lines
 
 @lt.run_time
-def rcsb_acc(accs):
+def rcsb_acc(accs,beta=15,chain_len=150,resolution=3.5):
     """
     accs be a list, ['Q969H0,P07834']
     return string format: '1A0R:1,1B9X:1,1B9Y:1,1C15:1'
@@ -150,12 +158,12 @@ def rcsb_acc(accs):
     <orgPdbQuery>
     <version>head</version>
     <queryType>org.pdb.query.simple.SecondaryStructureQuery</queryType>
-    <description>Secondary structure has:  14 or more Beta Sheets</description>
+    <description>Secondary structure has:  """+ str(beta) +""" or more Beta Sheets</description>
     <polyStats.helixPercent.comparator>between</polyStats.helixPercent.comparator>
     <polyStats.helixCount.comparator>between</polyStats.helixCount.comparator>
     <polyStats.sheetPercent.comparator>between</polyStats.sheetPercent.comparator>
     <polyStats.sheetCount.comparator>between</polyStats.sheetCount.comparator>
-    <polyStats.sheetCount.min>14</polyStats.sheetCount.min>
+    <polyStats.sheetCount.min>""" + str(beta) + """</polyStats.sheetCount.min>
     </orgPdbQuery>
     </queryRefinement>
     <queryRefinement>
@@ -164,9 +172,19 @@ def rcsb_acc(accs):
     <orgPdbQuery>
     <version>head</version>
     <queryType>org.pdb.query.simple.SequenceLengthQuery</queryType>
-    <description>Sequence Length is between 150 and 10000 </description>
-    <v_sequence.chainLength.min>150</v_sequence.chainLength.min>
-    <v_sequence.chainLength.max>10000</v_sequence.chainLength.max>
+    <description>Sequence Length is between """ + str(chain_len) + """ and more </description>
+    <v_sequence.chainLength.min>""" + str(chain_len) + """</v_sequence.chainLength.min>
+    </orgPdbQuery>
+    </queryRefinement>
+    <queryRefinement>
+    <queryRefinementLevel>3</queryRefinementLevel>
+    <conjunctionType>and</conjunctionType>
+    <orgPdbQuery>
+    <version>head</version>
+    <queryType>org.pdb.query.simple.ResolutionQuery</queryType>
+    <description>Resolution is """ + str(resolution) +""" or less </description>
+    <refine.ls_d_res_high.comparator>between</refine.ls_d_res_high.comparator>
+    <refine.ls_d_res_high.max>""" + str(resolution) + """</refine.ls_d_res_high.max>
     </orgPdbQuery>
     </queryRefinement>
     </orgPdbCompositeQuery>
@@ -183,6 +201,43 @@ def rcsb_acc(accs):
         break
     return pdbids
 
+def rcsb_acc_customreport(accs,beta=15,chain_len=150,resolution=3.5):
+    new_lines = [['structureId','chainId','uniprotAcc','entityId','resolution','chainLength','releaseDate']]
+    for acc in accs:
+        pdbids = rcsb_acc([acc],beta=15,chain_len=150,resolution=3.5)
+        if pdbids:
+            lines = rcsb_customreport(pdbids)
+            for line in lines[1:]:
+                if '#' in line[2]:
+                    line2s = line[2].split('#')
+                    for l in line2s:
+                        if l == acc:
+                            new_lines.append(line[0:2]+[l]+line[3:])
+                else:
+                    new_lines.append(line)
+    return new_lines
+
+def rcsb_acc_customreport(accs,beta=15,chain_len=150,resolution=3.5):
+    """
+    when use uniprot accessions to query pdbs and use returned pdbs to get custom report, some chimera pdb will return unrelated uniprot accessions
+    """
+    pdbids = rcsb_acc(accs,beta=15,chain_len=150,resolution=3.5)
+    lines = rcsb_customreport(pdbids)
+    # remove accs associated with chimera pdbs
+    new_lines = [lines[0]]
+    for line in lines[1:]:
+        if '#' in line[2]:
+            line2s = line[2].split('#')
+            for l in line2s:
+                new_lines.append(line[0:2]+[l]+line[3:])
+        else:
+            new_lines.append(line)
+    real_lines = [line for line in new_lines[1:] if line[2] in accs]
+    real_lines = [line for line in new_lines[1:] if int(line[5]) >= chain_len]
+    real_lines = [line for line in new_lines[1:] if float(line[4]) <= resolution]
+    real_lines = [new_lines[0]] + real_lines
+    return pdbids,real_lines
+
 def get_wdsp_acc():
     with open('wdsp_uniprot_id.txt') as o_f:
         lines = o_f.readlines()
@@ -192,7 +247,7 @@ def get_wdsp_acc():
         return lines
 
 @lt.run_time
-def rcsb_uniprot():
+def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
     keywords = ['pfam','smart','supfam','uniprot_repeat','uniprot_keyword','prosite1','prosite2','prosite3']
     wd40s = []
     for key in keywords:
@@ -218,19 +273,24 @@ def rcsb_uniprot():
     for acc in total:
         num = acc_score(acc)
         wd40s_score[num-1].append(acc)
+    write_lis_lis(wd40s_score,'uniprot_wd40_acc_scores',[str(i) for i in range(1,10)])
 
-    uniprot_pdbids = rcsb_acc(total)
-    report = rcsb_customreport(uniprot_pdbids)
-    pdb_scores = [[] for i in range(9)]
+    # uniprot_pdbids = rcsb_acc(total,beta,chain_len,resolution)
+    # report = rcsb_customreport(uniprot_pdbids)
+    uniprot_pdbids,report = rcsb_acc_customreport(total,beta,chain_len,resolution)
+    pdb_scores = []
     for p in report[1:]:
-        for i,w in enumerate(wd40s_score):
-            if p[2] in w:
-                pdb_scores[i].append('_'.join(p[:3]))
-    pdb_acc_scores = map(lambda x:x.split('_')[2],pdb_scores)
+        pdb_scores.append(p+[acc_score(p[2])])
+    pdb_scores = sorted(pdb_scores,key=lambda x:x[-1],reverse=True)
+    with open('uniprot_pdb_scores.txt','w') as w_f:
+        print >> w_f,'{0:<20}{1:<10}{2:<5}{3:<5}{4:<5}{5:<5}{6:<14}{7:<5}'.format('acc','pdb','chain','entityid','resolution','chain_len','release','score')
+        for p in pdb_scores:
+            print >> w_f,'{0:<20}{1:<10}{2:<5}{3:<5}{4:<5}{5:<5}{6:<14}{7:<5}'.format(p[2],p[0],p[1],p[3],p[4],p[5],p[6],p[7])
+
+    pdb_acc_scores = [[] for i in range(9)]
+    for p in pdb_scores:
+        pdb_acc_scores[p[-1]-1].append(p[2])
     pdb_acc_scores = map(set,pdb_acc_scores)
-
-
-    write_lis_lis(pdb_scores,'uniprot_wd40_pdb_scores',[str(i) for i in range(1,10)])
     write_lis_lis(pdb_acc_scores,'uniprot_wd40_pdb_acc_scores',[str(i) for i in range(1,10)])
 
     print 'uniprot search is finished'
@@ -238,7 +298,7 @@ def rcsb_uniprot():
 
 
 @lt.run_time
-def rcsb_pfam():
+def rcsb_pfam(beta=15,chain_len=150,resolution=3.5):
     url = 'http://www.rcsb.org/pdb/rest/search'
     pfam_query="""<orgPdbCompositeQuery version="1.0">
     <queryRefinement>
@@ -256,12 +316,12 @@ def rcsb_pfam():
     <orgPdbQuery>
     <version>head</version>
     <queryType>org.pdb.query.simple.SecondaryStructureQuery</queryType>
-    <description>Secondary structure has:  14 or more Beta Sheets</description>
+    <description>Secondary structure has:  """+ str(beta) +""" or more Beta Sheets</description>
     <polyStats.helixPercent.comparator>between</polyStats.helixPercent.comparator>
     <polyStats.helixCount.comparator>between</polyStats.helixCount.comparator>
     <polyStats.sheetPercent.comparator>between</polyStats.sheetPercent.comparator>
     <polyStats.sheetCount.comparator>between</polyStats.sheetCount.comparator>
-    <polyStats.sheetCount.min>14</polyStats.sheetCount.min>
+    <polyStats.sheetCount.min>""" + str(beta) + """</polyStats.sheetCount.min>
     </orgPdbQuery>
     </queryRefinement>
     <queryRefinement>
@@ -270,8 +330,8 @@ def rcsb_pfam():
     <orgPdbQuery>
     <version>head</version>
     <queryType>org.pdb.query.simple.SequenceLengthQuery</queryType>
-    <description>Sequence Length is 150 and more</description>
-    <v_sequence.chainLength.min>150</v_sequence.chainLength.min>
+    <description>Sequence Length is between """ + str(chain_len) + """ and more </description>
+    <v_sequence.chainLength.min>""" + str(chain_len) + """</v_sequence.chainLength.min>
     </orgPdbQuery>
     </queryRefinement>
     <queryRefinement>
@@ -280,10 +340,9 @@ def rcsb_pfam():
     <orgPdbQuery>
     <version>head</version>
     <queryType>org.pdb.query.simple.ResolutionQuery</queryType>
-    <description>Resolution is between 0.1 and 3.5 </description>
+    <description>Resolution is """ + str(resolution) +""" or less </description>
     <refine.ls_d_res_high.comparator>between</refine.ls_d_res_high.comparator>
-    <refine.ls_d_res_high.min>0.1</refine.ls_d_res_high.min>
-    <refine.ls_d_res_high.max>3.5</refine.ls_d_res_high.max>
+    <refine.ls_d_res_high.max>""" + str(resolution) + """</refine.ls_d_res_high.max>
     </orgPdbQuery>
     </queryRefinement>
     </orgPdbCompositeQuery>
@@ -302,7 +361,7 @@ def rcsb_pfam():
     return pdbids
 
 @lt.run_time
-def rcsb_scop():
+def rcsb_scop(beta=15,chain_len=150,resolution=3.5):
     url = 'http://www.rcsb.org/pdb/rest/search'
     scop_query = """
     <orgPdbCompositeQuery version="1.0">
@@ -323,12 +382,12 @@ def rcsb_scop():
     <orgPdbQuery>
     <version>head</version>
     <queryType>org.pdb.query.simple.SecondaryStructureQuery</queryType>
-    <description>Secondary structure has:  14 or more Beta Sheets</description>
+    <description>Secondary structure has:  """+ str(beta) +""" or more Beta Sheets</description>
     <polyStats.helixPercent.comparator>between</polyStats.helixPercent.comparator>
     <polyStats.helixCount.comparator>between</polyStats.helixCount.comparator>
     <polyStats.sheetPercent.comparator>between</polyStats.sheetPercent.comparator>
     <polyStats.sheetCount.comparator>between</polyStats.sheetCount.comparator>
-    <polyStats.sheetCount.min>14</polyStats.sheetCount.min>
+    <polyStats.sheetCount.min>""" + str(beta) + """</polyStats.sheetCount.min>
     </orgPdbQuery>
     </queryRefinement>
     <queryRefinement>
@@ -337,8 +396,8 @@ def rcsb_scop():
     <orgPdbQuery>
     <version>head</version>
     <queryType>org.pdb.query.simple.SequenceLengthQuery</queryType>
-    <description>Sequence Length is 150 and more</description>
-    <v_sequence.chainLength.min>150</v_sequence.chainLength.min>
+    <description>Sequence Length is between """ + str(chain_len) + """ and more </description>
+    <v_sequence.chainLength.min>""" + str(chain_len) + """</v_sequence.chainLength.min>
     </orgPdbQuery>
     </queryRefinement>
     <queryRefinement>
@@ -347,10 +406,9 @@ def rcsb_scop():
     <orgPdbQuery>
     <version>head</version>
     <queryType>org.pdb.query.simple.ResolutionQuery</queryType>
-    <description>Resolution is between 0.1 and 3.5 </description>
+    <description>Resolution is """ + str(resolution) +""" or less </description>
     <refine.ls_d_res_high.comparator>between</refine.ls_d_res_high.comparator>
-    <refine.ls_d_res_high.min>0.1</refine.ls_d_res_high.min>
-    <refine.ls_d_res_high.max>3.5</refine.ls_d_res_high.max>
+    <refine.ls_d_res_high.max>""" + str(resolution) + """</refine.ls_d_res_high.max>
     </orgPdbQuery>
     </queryRefinement>
     </orgPdbCompositeQuery>
@@ -369,7 +427,7 @@ def rcsb_scop():
     # get customed report
 
 @lt.run_time
-def rcsb_txt():
+def rcsb_txt(beta=15,chain_len=150,resolution=3.5):
 
     url = 'http://www.rcsb.org/pdb/rest/search'
     txt_query = """<orgPdbCompositeQuery version="1.0">
@@ -388,12 +446,12 @@ def rcsb_txt():
     <orgPdbQuery>
     <version>head</version>
     <queryType>org.pdb.query.simple.SecondaryStructureQuery</queryType>
-    <description>Secondary structure has:  14 or more Beta Sheets</description>
+    <description>Secondary structure has:  """+ str(beta) +""" or more Beta Sheets</description>
     <polyStats.helixPercent.comparator>between</polyStats.helixPercent.comparator>
     <polyStats.helixCount.comparator>between</polyStats.helixCount.comparator>
     <polyStats.sheetPercent.comparator>between</polyStats.sheetPercent.comparator>
     <polyStats.sheetCount.comparator>between</polyStats.sheetCount.comparator>
-    <polyStats.sheetCount.min>14</polyStats.sheetCount.min>
+    <polyStats.sheetCount.min>""" + str(beta) + """</polyStats.sheetCount.min>
     </orgPdbQuery>
     </queryRefinement>
     <queryRefinement>
@@ -402,8 +460,8 @@ def rcsb_txt():
     <orgPdbQuery>
     <version>head</version>
     <queryType>org.pdb.query.simple.SequenceLengthQuery</queryType>
-    <description>Sequence Length is 150 and more</description>
-    <v_sequence.chainLength.min>150</v_sequence.chainLength.min>
+    <description>Sequence Length is between """ + str(chain_len) + """ and more </description>
+    <v_sequence.chainLength.min>""" + str(chain_len) + """</v_sequence.chainLength.min>
     </orgPdbQuery>
     </queryRefinement>
     <queryRefinement>
@@ -412,10 +470,9 @@ def rcsb_txt():
     <orgPdbQuery>
     <version>head</version>
     <queryType>org.pdb.query.simple.ResolutionQuery</queryType>
-    <description>Resolution is between 0.1 and 3.5 </description>
+    <description>Resolution is """ + str(resolution) +""" or less </description>
     <refine.ls_d_res_high.comparator>between</refine.ls_d_res_high.comparator>
-    <refine.ls_d_res_high.min>0.1</refine.ls_d_res_high.min>
-    <refine.ls_d_res_high.max>3.5</refine.ls_d_res_high.max>
+    <refine.ls_d_res_high.max>""" + str(resolution) + """</refine.ls_d_res_high.max>
     </orgPdbQuery>
     </queryRefinement>
     </orgPdbCompositeQuery>
@@ -436,29 +493,40 @@ def rcsb_txt():
 
 @lt.run_time
 def main():
-    uniprot_pdbids,pdb_scores = rcsb_uniprot()
-    scop_pdbids = rcsb_scop()
-    pfam_pdbids = rcsb_pfam()
-    txt_pdbids = rcsb_pfam()
-    uniprot = set([u.split(':')[0] for u in uniprot_pdbids.split(',')[0]])
-    scop = set([u.split(':')[0] for u in scop_pdbids.split(',')[0]])
-    pfam = set([u.split(':')[0] for u in pfam_pdbids.split(',')[0]])
-    txt = set([u.split(':')[0] for u in txt_pdbids.split(',')[0]])
+    beta,chain_len,resolution = 15,150,3.5
+    uniprot_pdbids,pdb_scores = rcsb_uniprot(beta,chain_len,resolution)
+    scop_pdbids = rcsb_scop(beta,chain_len,resolution)
+    pfam_pdbids = rcsb_pfam(beta,chain_len,resolution)
+    txt_pdbids = rcsb_pfam(beta,chain_len,resolution)
+    uniprot = set([u.split(':')[0] for u in uniprot_pdbids.split(',')[:-1]])
+    scop = set([u.split(':')[0] for u in scop_pdbids.split(',')[:-1]])
+    pfam = set([u.split(':')[0] for u in pfam_pdbids.split(',')[:-1]])
+    txt = set([u.split(':')[0] for u in txt_pdbids.split(',')[:-1]])
 
 
     venn2([uniprot,scop],['uniprot','scop'])
-    plt.savefig('uniprot_scop.png','w')
+    plt.savefig('uniprot_scop.png',dpi=300)
+    plt.close('all')
     venn2([uniprot,pfam],['uniprot','pfam'])
-    plt.savefig('uniprot_pfam.png','w')
+    plt.savefig('uniprot_pfam.png',dpi=300)
+    plt.close('all')
     venn2([uniprot,txt],['uniprot','txt'])
-    plt.savefig('uniprot_pfam.png','w')
+    plt.savefig('uniprot_pfam.png',dpi=300)
+    plt.close('all')
+    venn2([uniprot,set.union(*[scop,pfam,txt])],['uniprot','pfam_scop_txt'])
+    plt.savefig('uniprot__pfam_scop_txt.png',dpi=300)
+    plt.close('all')
     venn2([pfam,txt],['pfam','txt'])
-    plt.savefig('pfam_txt.png','w')
+    plt.savefig('pfam_txt.png',dpi=300)
+    plt.close('all')
     venn2([pfam,scop],['pfam','scop'])
-    plt.savefig('pfam_scop.png','w')
+    plt.savefig('pfam_scop.png',dpi=300)
+    plt.close('all')
+    venn3([pfam,scop,txt],['pfam','scop','txt'])
+    plt.savefig('pfam_scop_txt.png',dpi=300)
     plt.close('all')
 
-    write_lis_lis([uniprot,scop,pfam,txt],'rcsb_wd40',['uniprot','scop','pfam','txt'])
+    write_lis_lis([uniprot,scop,pfam,txt],'rcsb_wd40_pdb',['uniprot','scop','pfam','txt'])
 
 if __name__ == "__main__":
     main()
