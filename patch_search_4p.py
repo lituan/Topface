@@ -72,6 +72,7 @@ def main():
         a = PatchSearch(wdsp.pros,wdsp.seqs,wdsp.wdsps,wdsp.hotspots,CUTOFF)
         a.get_patches()
         a.classify_patches()
+        a.deredundant_patches()
         a.write_results()
 
 if __name__ == "__main__":
