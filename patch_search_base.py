@@ -141,6 +141,36 @@ class PatchSearch:
                         if not pro in self.shape_patch_pros[shape][patch]:
                             self.shape_patch_pros[shape][patch].append(pro)
 
+    def deredundant_patches(self):
+        """
+        pros with same patch can be seen as a cluster, thus there are many clusters overlapping with other clusters
+        to select not-overlapping representative clusters,following steps are applied:
+        1. select the biggest cluster as the representative
+        2. remove pros which are in the representative cluster from the overlapping clusters
+        3. repeat step 1 and 2, until no cluster overlapps
+        """
+        i = 1
+        n = 0  # iterrations of deredundancy
+        clusters = [[pros,shape,patch] for shape,patch_pros in self.shape_patch_pros.iteritems() for patch,pros in patch_pros.iteritems()]
+        while i > 0:
+            clusters = sorted(clusters,reverse=True)
+            repre = clusters[n]
+            remove = 0
+            for i,c in enumerate(clusters[n+1:]):
+                for p in repre[0]:
+                    if p in c[0]:
+                        clusters[i+n+1][0].remove(p)
+                        remove += 1
+            # remove empty entry
+            clusters = clusters[:n+1]+[c for c in clusters[n+1:] if c[0]]
+            n += 1
+            if not remove:
+                i = 0
+
+        self.shape_patch_pros = {}
+        for pros,shape,patch in clusters:
+            self.shape_patch_pros[shape] = {patch:pros}
+
 
     def write_results(self):
 
@@ -177,7 +207,6 @@ class PatchSearch:
 
         for len_pros, shape, patch, pros in sta:
             # do not output these
-            break
             dir_name = str(len_pros) + '_' + shape + '_' + patch
 
             with lt.open_file(file_name=dir_name,file_suffix='hotspot', inner_dir=dir_name) as f:
