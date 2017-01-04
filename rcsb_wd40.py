@@ -38,20 +38,14 @@ def rcsb_customreport(pdbids):
         'service':'wsfile',
         'format':'csv',
     }
-    for i in range(10):
-        try:
-            print 'try get customrepror for the ',i,' time'
-            data = urllib.urlencode(data)
-            req = urllib2.Request(url,data)
-            response = urllib2.urlopen(req)
-            lines = response.readlines()
-            lines = [line.rstrip('\r\n') for line in lines]
-            lines = [line for line in lines if line]
-            lines = [line.split(',') for line in lines]
-            lines = [[w.strip('"') for w in line] for line in lines]
-        except:
-            continue
-        break
+    data = urllib.urlencode(data)
+    req = urllib2.Request(url,data)
+    response = urllib2.urlopen(req)
+    lines = response.readlines()
+    lines = [line.rstrip('\r\n') for line in lines]
+    lines = [line for line in lines if line]
+    lines = [line.split(',') for line in lines]
+    lines = [[w.strip('"') for w in line] for line in lines]
     return lines
 
 @lt.run_time
@@ -116,17 +110,11 @@ def uniprot_wd40(key='pfam',pdb=False):
     'query':query,
     'format':'list',
     }
-    for i in range(10):
-        try:
-            print 'try uniprot ',key,'for the ',i+1,' time'
-            data = urllib.urlencode(data)
-            req = urllib2.Request(url,data)
-            response = urllib2.urlopen(req)
-            r = response.readlines()
-            lines = set([line.rstrip('\r\n') for line in r])
-        except:
-            continue
-        break
+    data = urllib.urlencode(data)
+    req = urllib2.Request(url,data)
+    response = urllib2.urlopen(req)
+    r = response.readlines()
+    lines = set([line.rstrip('\r\n') for line in r])
     print 'uniprot search ',key,' is finished'
     return lines
 
@@ -189,16 +177,10 @@ def rcsb_acc(accs,beta=15,chain_len=150,resolution=3.5):
     </queryRefinement>
     </orgPdbCompositeQuery>
     """
-    for i in range(10):
-        try:
-            print 'try uniprot acc in rcsb'
-            req = urllib2.Request(url,data=query)
-            response = urllib2.urlopen(req)
-            pdbids = response.read()
-            pdbids = pdbids.replace('\n',',')
-        except:
-            continue
-        break
+    req = urllib2.Request(url,data=query)
+    response = urllib2.urlopen(req)
+    pdbids = response.read()
+    pdbids = pdbids.replace('\n',',')
     return pdbids
 
 def rcsb_acc_customreport(accs,beta=15,chain_len=150,resolution=3.5):
@@ -233,9 +215,9 @@ def rcsb_acc_customreport(accs,beta=15,chain_len=150,resolution=3.5):
         else:
             new_lines.append(line)
     real_lines = [line for line in new_lines[1:] if line[2] in accs]
-    real_lines = [line for line in new_lines[1:] if int(line[5]) >= chain_len]
-    real_lines = [line for line in new_lines[1:] if float(line[4]) <= resolution]
-    real_lines = [new_lines[0]] + real_lines
+    real_lines = [line for line in real_lines if int(line[5]) >= chain_len]
+    real_lines = [line for line in real_lines if float(line[4]) <= resolution]
+    real_lines = [lines[0]] + real_lines
     return pdbids,real_lines
 
 def get_wdsp_acc():
@@ -251,15 +233,12 @@ def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
     keywords = ['pfam','smart','supfam','uniprot_repeat','uniprot_keyword','prosite1','prosite2','prosite3']
     wd40s = []
     for key in keywords:
-        for i in range(10):
-            try:
-                wd40s.append(uniprot_wd40(key))
-            except:
-                continue
-            break
+        wd40s.append(uniprot_wd40(key))
     wdsp = get_wdsp_acc()
     wd40s.append(wdsp)
     keywords.append('wdsp')
+
+    lt.pickle_dump(wd40s,'wd40s')
 
     total = set.union(*map(set,wd40s))
     # if an entry apears in n different querys, its score is n
@@ -278,14 +257,15 @@ def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
     # uniprot_pdbids = rcsb_acc(total,beta,chain_len,resolution)
     # report = rcsb_customreport(uniprot_pdbids)
     uniprot_pdbids,report = rcsb_acc_customreport(total,beta,chain_len,resolution)
+    print report
     pdb_scores = []
     for p in report[1:]:
         pdb_scores.append(p+[acc_score(p[2])])
     pdb_scores = sorted(pdb_scores,key=lambda x:x[-1],reverse=True)
     with open('uniprot_pdb_scores.txt','w') as w_f:
-        print >> w_f,'{0:<20}{1:<10}{2:<5}{3:<5}{4:<5}{5:<5}{6:<14}{7:<5}'.format('acc','pdb','chain','entityid','resolution','chain_len','release','score')
+        print >> w_f,'{0:<15}{1:<10}{2:<8}{3:<8}{4:<8}{5:<8}{6:<14}{7:<8}'.format('acc','pdb','chain','entity','resolution','chain_len','release','score')
         for p in pdb_scores:
-            print >> w_f,'{0:<20}{1:<10}{2:<5}{3:<5}{4:<5}{5:<5}{6:<14}{7:<5}'.format(p[2],p[0],p[1],p[3],p[4],p[5],p[6],p[7])
+            print >> w_f,'{0:<15}{1:<10}{2:<8}{3:<8}{4:<8}{5:<8}{6:<14}{7:<8}'.format(p[2],p[0],p[1],p[3],p[4],p[5],p[6],p[7])
 
     pdb_acc_scores = [[] for i in range(9)]
     for p in pdb_scores:
@@ -347,16 +327,10 @@ def rcsb_pfam(beta=15,chain_len=150,resolution=3.5):
     </queryRefinement>
     </orgPdbCompositeQuery>
     """
-    for i in range(10):
-        try:
-            print 'try pfam query in rcsb'
-            req = urllib2.Request(url,data=pfam_query)
-            response = urllib2.urlopen(req)
-            result_pdb = response.read()
-            pdbids = result_pdb.replace('\n',',')
-        except:
-            continue
-        break
+    req = urllib2.Request(url,data=pfam_query)
+    response = urllib2.urlopen(req)
+    result_pdb = response.read()
+    pdbids = result_pdb.replace('\n',',')
     # get customed report
     return pdbids
 
@@ -413,16 +387,10 @@ def rcsb_scop(beta=15,chain_len=150,resolution=3.5):
     </queryRefinement>
     </orgPdbCompositeQuery>
     """
-    for i in range(10):
-        try:
-            print 'try scop query in rcsb'
-            req = urllib2.Request(url,data=scop_query)
-            response = urllib2.urlopen(req)
-            result_pdb = response.read()
-            pdbids = result_pdb.replace('\n',',')
-        except:
-            continue
-        break
+    req = urllib2.Request(url,data=scop_query)
+    response = urllib2.urlopen(req)
+    result_pdb = response.read()
+    pdbids = result_pdb.replace('\n',',')
     return pdbids
     # get customed report
 
@@ -477,16 +445,10 @@ def rcsb_txt(beta=15,chain_len=150,resolution=3.5):
     </queryRefinement>
     </orgPdbCompositeQuery>
     """
-    for i in range(10):
-        try:
-            print 'try txt query in rcsb'
-            req = urllib2.Request(url,data=txt_query)
-            response = urllib2.urlopen(req)
-            result_pdb = response.read()
-            pdbids = result_pdb.replace('\n',',')
-        except:
-            continue
-        break
+    req = urllib2.Request(url,data=txt_query)
+    response = urllib2.urlopen(req)
+    result_pdb = response.read()
+    pdbids = result_pdb.replace('\n',',')
     # get customed report
     return pdbids
 
