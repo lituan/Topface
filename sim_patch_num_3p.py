@@ -28,48 +28,37 @@ class PatchSearchSpecific(PatchSearch):
 
         self.phos_res = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K',
                          'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
-        # self.phos_res = ['R','K','Y','W','Q','H','N','S','T']
-        self.phos_res = ['R', 'K', 'Y', 'H', 'S', 'T']
 
-    # def check_patches(self, shape_k, shape_v, patches, surround_patches):
-        # #do not distinguish between 'S' and 'T'
-        # patches = [''.join([p.replace('S','T') for p in patch]) for patch in patches]
-        # # def validify(patch):
-            # # for p in patch:
-                # # if not p in self.phos_res:
-                    # # return 0
-            # # for i, p in enumerate(patch):
-                # # if shape_v[i][1] == 0 and p in ['T', 'S']:
-                    # # return 0
-            # # return 1
-        # # def validify_surround(surround_patch):
-            # # if 'D' in surround_patch or 'E' in surround_patch:
-                # # return 0
-            # # return 1
+    def get_patches(self):
+        for shape_k, shape_v in self.shapes.iteritems():
+            self.shape_pro_patches[shape_k] = {}
+            shape_blade_len = max([s[0] for s in shape_v]) + 2
+            shape_residue_len = len(shape_v)
+            for hotspot_k, hotspot_v in self.hotspots.iteritems():
+                hotspot_v = [(hotspot_v + hotspot_v)[i:i + shape_blade_len]
+                             for i in xrange(len(hotspot_v))]
+                patches = [''.join([h[s[0]][s[1]] for s in shape_v])
+                           for h in hotspot_v]
+                if len(patches) > 0:
+                    self.shape_pro_patches[shape_k][hotspot_k] = patches
 
-        # def validify(patch):
-            # return 1
-        # def validify_surround(surround_patch):
-            # return 1
-
-        # good_patches = []
-        # for patch,surround_patch in zip(patches,surround_patches):
-            # if validify(patch) and validify_surround(surround_patch):
-                # good_patches.append(patch)
-
-        # return good_patches
+    def write_results(self):
+        with lt.open_file(file_suffix='sim_patch_num') as w_f:
+            for shape,patch_pros in self.shape_patch_pros.iteritems():
+                for patch,pros in patch_pros.iteritems():
+                    print >> w_f,'{0:<10}{1:<10}{2:<10}'.format(shape,patch,len(pros))
 
 
 @lt.run_time
 def main():
     with open(sys.argv[1]) as wdsp_f:
-        CUTOFF = 0
+        CUTOFF=0
         wdsp = Wdsp(wdsp_f)
         a = PatchSearchSpecific(wdsp.pros,wdsp.seqs,wdsp.wdsps,wdsp.hotspots,CUTOFF)
         a.get_patches()
         a.classify_patches()
-        a.deredundant_patches()
         a.write_results()
 
 if __name__ == "__main__":
     main()
+

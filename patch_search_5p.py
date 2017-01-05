@@ -10,8 +10,8 @@ from patch_search_base import PatchSearch
 
 class PatchSearchSpecific(PatchSearch):
 
-    def __init__(self, wdsp_f, cutoff):
-        PatchSearch.__init__(self, wdsp_f, cutoff)
+    def __init__(self, pros, seqs, wdsps, hotspots, cutoff=1):
+        PatchSearch.__init__(self, pros, seqs, wdsps, hotspots, cutoff)
 
         self.shapes = {
             'shape_5_2_1_a':	((1, 0), (1, 1), (1, 2), (2, 0), (2, 1)),
@@ -58,9 +58,10 @@ def main():
     with open(sys.argv[1]) as wdsp_f:
         CUTOFF = 20
         wdsp = Wdsp(wdsp_f)
-        a = PatchSearch(wdsp.pros,wdsp.seqs,wdsp.wdsps,wdsp.hotspots,CUTOFF)
+        a = PatchSearchSpecific(wdsp.pros,wdsp.seqs,wdsp.wdsps,wdsp.hotspots,CUTOFF)
         a.get_patches()
         a.classify_patches()
+        a.deredundant_patches()
         a.write_results()
 
 

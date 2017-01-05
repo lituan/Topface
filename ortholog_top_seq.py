@@ -350,7 +350,7 @@ def main():
             seqs_score = align_seqs([seq[1] for seq in seqs])
             hots_score_pair = matrix_to_pair(hots_score)
             seqs_score_pair = matrix_to_pair(seqs_score)
-            regressions.append(seqs_score_pair,hots_score_pair)
+            regressions.append(linregres(seqs_score_pair,hots_score_pair))
             plot_scatter(seqs_score,hots_score,filename+'_scatter')
 
             hots = adjust_hots(nr_hots)

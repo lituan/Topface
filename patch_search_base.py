@@ -75,7 +75,7 @@ class PatchSearch:
                    'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', 'B', 'J', 'Z', 'X', '*']
         #residues than can interact with phos using sidechians
         self.phos_res = ['R', 'K', 'Y', 'H', 'S', 'T', 'N', 'Q', 'W']
-        # self.phos_res = ['R', 'K', 'Y', 'H', 'S', 'T']
+        self.phos_res = ['R', 'K', 'Y', 'H', 'S', 'T']
 
         self.pros = pros
         self.seqs = seqs
