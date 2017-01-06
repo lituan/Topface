@@ -4,11 +4,11 @@
 """
 workflow
 mark two pros with topface similarity greater than 0.8 as orthologs
-1. find clusters of orthologs
-2. plot logo of hotspots of  orthlogs
-3. plot topface_seq scatter plot of orthlogs
+1. read pros of same patch
+2. plot logo of hotspots of  pros
+3. plot topface_seq scatter plot of pros
 
-usage: python ortholog_top_seq.py all_nr.wdsp
+usage: python patch_top_seq.py patch_sta.txt all_nr.wdsp
 """
 
 import sys
@@ -327,6 +327,13 @@ def cluster_topface(all_hots,cutoff=0.8):
 
     return clusters
 
+def read_patch_pros():
+    with open(sys.argv[-2]) as o_f:
+        lines = o_f.readlines()
+        lines = [line.rstrip('\r\n') for line in lines]
+        lines = [line.split() for line in lines if line]
+        lines = [(num,shape,patch,[pro for pro in pros.split(',')]) for num,shape,patch,pros in lines]
+        return lines
 
 import lt
 @lt.run_time
@@ -338,29 +345,28 @@ def main():
         all_seqs = all_wdsp.seqs
 
 
-    clusters = cluster_topface(all_hots)
+    clusters = read_patch_pros()
     regressions = []
-    for pros in clusters:
-        c_size = len(pros)
-        if c_size > 10:
-            filename = str(c_size)+'_'+pros[0]+'_'+str(cutoff)
-            hots = [[pro,all_hots[pro]] for pro in pros]
-            seqs = [[pro,all_wdsp.seqs[pro]] for pro in pros]
-            hots_score = align_hots([hot[1] for hot in hots])
-            seqs_score = align_seqs([seq[1] for seq in seqs])
-            regressions.append(linregress(seqs_score,hots_score))
-            plot_scatter(seqs_score,hots_score,filename+'_scatter')
+    for num,shape,patch,pros in clusters:
+        filename = str(num)+'_'+shape+'_'+patch
+        hots = [[pro,all_hots[pro]] for pro in pros]
+        seqs = [[pro,all_wdsp.seqs[pro]] for pro in pros]
+        hots_score = align_hots([hot[1] for hot in hots])
+        seqs_score = align_seqs([seq[1] for seq in seqs])
+        regressions.append([num,shape,patch,linregress(seqs_score,hots_score)])
+        plot_scatter(seqs_score,hots_score,filename+'_scatter')
 
-            hots = adjust_hots(hots)
-            hots = [(pro,''.join(hot)) for pro,hot in hots]
-            plotlogo(hots,filename+'_logo')
+        hots = adjust_hots(hots)
+        hots = [(pro,''.join(hot)) for pro,hot in hots]
+        plotlogo(hots,filename+'_logo')
 
     with open('regressions.txt','w') as w_f:
         'slop,intercept,r-value,p-value,stderr'
-        for r in regressions:
-            print >> w_f,';'.join(map(str,r))
+        for num,shape,patch,r in regressions:
+            print >> w_f,'{0:<10}{1:<20}{2:<10}{3:<}'.format(num,shape,patch,';'.join(map(str,r)))
 
 
 if __name__ == "__main__":
     main()
+
 
