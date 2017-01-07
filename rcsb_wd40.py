@@ -81,7 +81,7 @@ def uniprot_wd40(key='pfam',pdb=False):
     return a list of uniprot accesions
     """
     if   key == 'pfam':
-        query = 'database:(type:pfam id:PF00400)'
+        query = 'database:(type:pfam id:PF00400) OR database:(type:pfam id:PF12894) OR database:(type:pfam id:PF16529) OR database:(type:pfam id:PF16756)'
     elif key == 'smart':
         query = 'database:(type:smart id:SM00320)'
     elif key == 'supfam':
@@ -252,7 +252,7 @@ def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
     sns.set_color_codes('pastel')
     sns.barplot(x='Database',y='Num of WD40',data=wd,color='b')
     ax.set(xlabel='Database',ylabel='Num of WD40',title='Annotation of WD40 in UniProt')
-    plt.savefig('wd40_in_uniprot_accs',dpi=300)
+    plt.savefig('annotation_wd40_in_uniprot_accs',dpi=300)
     plt.close('all')
 
     total = set.union(*map(set,wd40s))
@@ -274,7 +274,7 @@ def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
     sns.set_color_codes('pastel')
     sns.barplot(x='Database Score',y='Num of WD40',data=wd,color='b')
     ax.set(xlabel='Database Score',ylabel='Num of WD40',title='Annotation of WD40 in Uniprot')
-    plt.savefig('wd40_in_uniprot_accs',dpi=300)
+    plt.savefig('score_wd40_in_uniprot_accs',dpi=300)
     plt.close('all')
     write_lis_lis(wd40s_score,'uniprot_wd40_acc_scores',[str(i) for i in range(1,10)])
 
