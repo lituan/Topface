@@ -17,8 +17,10 @@ import os
 import urllib
 import urllib2
 import pandas as pd
+import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib_venn import venn3,venn2
+from multiprocessing import Pool
 import lt
 
 @lt.run_time
@@ -111,11 +113,16 @@ def uniprot_wd40(key='pfam',pdb=False):
     'format':'list',
     }
     data = urllib.urlencode(data)
-    req = urllib2.Request(url,data)
-    response = urllib2.urlopen(req)
-    r = response.readlines()
-    lines = set([line.rstrip('\r\n') for line in r])
-    print 'uniprot search ',key,' is finished'
+    for i in range(10):
+        try:
+            req = urllib2.Request(url,data)
+            response = urllib2.urlopen(req)
+            r = response.readlines()
+            lines = set([line.rstrip('\r\n') for line in r])
+            print 'uniprot search ',key,' is finished'
+            break
+        except IncompleteRead:
+            continue
     return lines
 
 @lt.run_time
@@ -231,14 +238,22 @@ def get_wdsp_acc():
 @lt.run_time
 def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
     keywords = ['pfam','smart','supfam','uniprot_repeat','uniprot_keyword','prosite1','prosite2','prosite3']
-    wd40s = []
-    for key in keywords:
-        wd40s.append(uniprot_wd40(key))
+    p = Pool(8)
+    wd40s = p.map(uniprot_wd40,keywords)
+    p.close()
     wdsp = get_wdsp_acc()
     wd40s.append(wdsp)
     keywords.append('wdsp')
 
     lt.pickle_dump(wd40s,'wd40s')
+    f,ax = plt.subplots()
+    wd = pd.DataFrame({'Database':keywords,'Num of WD40':map(len,wd40s)})
+    wd = wd.sort_values('Num of WD40',ascending=True)
+    sns.set_color_codes('pastel')
+    sns.barplot(x='Database',y='Num of WD40',data=wd,color='b')
+    ax.set(xlabel='Database',ylabel='Num of WD40',title='Annotation of WD40 in UniProt')
+    plt.savefig('wd40_in_uniprot_accs',dpi=300)
+    plt.close('all')
 
     total = set.union(*map(set,wd40s))
     # if an entry apears in n different querys, its score is n
@@ -252,12 +267,20 @@ def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
     for acc in total:
         num = acc_score(acc)
         wd40s_score[num-1].append(acc)
+
+    lt.pickle_dump(wd40s_score,'wd40s_score')
+    f,ax = plt.subplots()
+    wd = pd.DataFrame({'Database Score':range(1,10),'Num of WD40':map(len,wd40s_score)})
+    sns.set_color_codes('pastel')
+    sns.barplot(x='Database Score',y='Num of WD40',data=wd,color='b')
+    ax.set(xlabel='Database Score',ylabel='Num of WD40',title='Annotation of WD40 in Uniprot')
+    plt.savefig('wd40_in_uniprot_accs',dpi=300)
+    plt.close('all')
     write_lis_lis(wd40s_score,'uniprot_wd40_acc_scores',[str(i) for i in range(1,10)])
 
     # uniprot_pdbids = rcsb_acc(total,beta,chain_len,resolution)
     # report = rcsb_customreport(uniprot_pdbids)
     uniprot_pdbids,report = rcsb_acc_customreport(total,beta,chain_len,resolution)
-    print report
     pdb_scores = []
     for p in report[1:]:
         pdb_scores.append(p+[acc_score(p[2])])
@@ -271,6 +294,15 @@ def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
     for p in pdb_scores:
         pdb_acc_scores[p[-1]-1].append(p[2])
     pdb_acc_scores = map(set,pdb_acc_scores)
+
+    lt.pickle_dump(pdb_acc_scores,'pdb_acc_scores')
+    f,ax = plt.subplots()
+    wd = pd.DataFrame({'Database Score':range(1,10),'Num of WD40':map(len,pdb_acc_scores)})
+    sns.set_color_codes('pastel')
+    sns.barplot(x='Database Score',y='Num of WD40',data=wd,color='b')
+    ax.set(xlabel='Database Score',ylabel='Num of WD40',title='WD40 Structures in RCSB')
+    plt.savefig('uniprot_wd40_in_RCSB_accs',dpi=300)
+    plt.close('all')
     write_lis_lis(pdb_acc_scores,'uniprot_wd40_pdb_acc_scores',[str(i) for i in range(1,10)])
 
     print 'uniprot search is finished'
@@ -466,6 +498,7 @@ def main():
     txt = set([u.split(':')[0] for u in txt_pdbids.split(',')[:-1]])
 
 
+    sns.set_color_codes('colorblind')
     venn2([uniprot,scop],['uniprot','scop'])
     plt.savefig('uniprot_scop.png',dpi=300)
     plt.close('all')
@@ -488,7 +521,21 @@ def main():
     plt.savefig('pfam_scop_txt.png',dpi=300)
     plt.close('all')
 
+    lt.pickle_dump([uniprot,scop,pfam,txt],'search_method')
     write_lis_lis([uniprot,scop,pfam,txt],'rcsb_wd40_pdb',['uniprot','scop','pfam','txt'])
+
+    f,ax = plt.subplots()
+    total = set.union(*map(set,[uniprot,scop,pfam,txt]))
+    sns.set_color_codes('pastel')
+    methods = ['UniProt','Pfam','Txt','SCOP']
+    wd = pd.DataFrame({'Search Method':methods,'Num of WD40':map(len,[total,total,total,total])})
+    sns.barplot(x='Search Method',y='Num of WD40',data=wd,color='b')
+    sns.set_color_codes('muted')
+    wd = pd.DataFrame({'Search Method':methods,'Num of WD40':map(len,[uniprot,pfam,txt,scop])})
+    sns.barplot(x='Search Method',y='Num of WD40',data=wd,color='b')
+    ax.set(xlabel='Search Method',ylabel='Num of WD40',title='WD40 Structures in RCSB')
+    plt.savefig('wd40_in_RCSB_pdbs',dpi=300)
+    plt.close('all')
 
 if __name__ == "__main__":
     main()
