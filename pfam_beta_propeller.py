@@ -12,6 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib_venn import venn3,venn2
 from collections import OrderedDict
+import lt
 
 pfam_propellers = {
 'WD40'            : 'PF00400',
@@ -87,7 +88,8 @@ pfam_propellers = {
 'VCBS'            : 'PF13517'
 }
 
-def uniprot_query(pfam_id='PF00400',pdb=False):
+@lt.run_time
+def uniprot_query(key='wd40',pfam_id='PF00400',pdb=False):
     """
     use annotations from different database to query WD40 in uniprot
     return a list of uniprot accesions
@@ -109,19 +111,54 @@ def uniprot_query(pfam_id='PF00400',pdb=False):
     print 'uniprot search ',key,' is finished'
     return lines
 
-def query_uniprot():
-
-    propellers = OrderedDict()
-    for key,pfam_id in pfam_propellers.iteritems():
-        for i in range(10):
-            try:
-                ids = uniprot_query(key,pfam_id)
-                propellers[key] = ids
-                break
-            except:
-                continue
-
+def query(pfam):
+    key,pfam_id = pfam[0],pfam[1]
+    for i in range(10):
+        try:
+            ids = uniprot_query(key,pfam_id)
+            propellers = [key,ids]
+            print 'query ',key,'is successful'
+            print len(ids),' entries got'
+            break
+        except:
+            continue
     return propellers
+
+def write_lis_lis(lis_lis,filename,cols=[]):
+    """align nested list to print a table"""
+    lis_lis = [lis if lis else ['    '] for lis in lis_lis]
+    lis_lis = [[str(l) for l in lis]
+               for lis in lis_lis]  # trans every element to str
+    #make all inner lists of the same length
+    inner_lis_max_len = max(len(lis) for lis in lis_lis)
+    lis_lis = [lis + (inner_lis_max_len - len(lis)) * [''] for lis in lis_lis]
+    #make element in the same list have the same length
+    aligned = []
+    for lis in lis_lis:
+        width = max([len(l) for l in lis])
+        lis = [l + (width - len(l)) * ' ' for l in lis]
+        aligned.append(lis)
+    new_lis_lis = [';'.join([aligned[i][j] for i in range(len(aligned))]) for j in range(len(aligned[0]))]
+    with open(filename+'.txt','w') as w_f:
+        if cols:
+            print >> w_f,'\t;'.join(cols)
+        for l in new_lis_lis:
+            print >> w_f,l
+
+def main():
+    pfams = [[key,pfam_id] for key,pfam_id in pfam_propellers.iteritems() ]
+    from multiprocessing import Pool
+    p = Pool(71)
+    propellers = p.map(query,pfams)
+    p.close()
+    keys = [k for k,v in propellers]
+    values = [v for k,v in propellers]
+    write_lis_lis(values,'pfam_propellers',cols=keys)
+
+    lt.pickle_dump(propellers,'pfam_propellers')
+
+if __name__ == "__main__":
+    main()
 
 
 
