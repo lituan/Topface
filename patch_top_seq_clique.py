@@ -335,47 +335,75 @@ def read_patch_pros():
         lines = [(num,shape,patch,[pro for pro in pros.split(',')]) for num,shape,patch,pros in lines]
         return lines
 
-def single_fun(cluster):
-    num,shape,patch,pros = cluster
-    # for num,shape,patch,pros in clusters:
-    filename = str(num)+'_'+shape+'_'+patch
-    hots = [[pro,all_hots[pro]] for pro in pros]
-    seqs = [[pro,all_wdsp.seqs[pro]] for pro in pros]
-    hots_score = align_hots([hot[1] for hot in hots])
-    seqs_score = align_seqs([seq[1] for seq in seqs])
-    # regressions.append([num,shape,patch,linregress(seqs_score,hots_score)])
-    plot_scatter(seqs_score,hots_score,filename+'_scatter')
+def pair_to_matrix(pair):
+    n = int((1+np.sqrt(len(pair)*8+1))/2.0)
+    matrix = np.ones((n,n))
+    for i in range(n):
+        i_shift = i*n-i*(i+1)/2
+        for j in range(n):
+            j_shift = j*n-j*(j+1)/2
+            if j > i:
+                matrix[i][j] = pair[j-i-1+i_shift]
+            if j < i:
+                matrix[i][j] = pair[i-j-1+j_shift]
+    return matrix
 
-    hots = adjust_hots(hots)
-    hots = [(pro,''.join(hot)) for pro,hot in hots]
-    plotlogo(hots,filename+'_logo')
-    slope,intercept,rvalue,pvalue,stderr = linregress(seqs_score,hots_score)
-    return [num,shape,patch,[slope,intercept,rvalue,pvalue,stderr]]
+def matrix_to_pair(matrix):
+    pair = []
+    n = len(matrix)
+    for i in range(n):
+        for j in range(n):
+            if j > i:
+                pair.append(matrix[i][j])
+    return pair
 
-with open(sys.argv[-1]) as wdsp_f:
-    all_wdsp = Wdsp(wdsp_f)
-    all_hots = all_wdsp.hotspots
-    all_seqs = all_wdsp.seqs
 
 import lt
 @lt.run_time
 def main():
 
+    with open(sys.argv[-1]) as wdsp_f:
+        all_wdsp = Wdsp(wdsp_f)
+        all_hots = all_wdsp.hotspots
+        all_seqs = all_wdsp.seqs
+
+
     clusters = read_patch_pros()
-    # regressions = []
+    regressions = []
+    for num,shape,patch,pros in clusters:
+        filename = str(num)+'_'+shape+'_'+patch
+        hots = [[pro,all_hots[pro]] for pro in pros]
+        seqs = [[pro,all_wdsp.seqs[pro]] for pro in pros]
+        hots_score = align_hots([hot[1] for hot in hots])
+        seqs_score = align_seqs([seq[1] for seq in seqs])
 
-    from multiprocessing import Pool
-    p = Pool(8)
-    regressions = p.map(single_fun,clusters)
-    p.close()
+        hots_score_matrix = pair_to_matrix(hots_score)
+        seqs_score_matrix = pair_to_matrix(seqs_score)
+        top_seq_matrix = np.array(hots_score_matrix) - np.array(seqs_score_matrix)
+        top_seq_matrix = [[1 if e > 0 else 0 for e in line ] for line in top_seq_matrix]
+        for i in range(len(top_seq_matrix)):
+            top_seq_matrix[i][i]  = 0
+        import igraph
+        graph = igraph.Graph.Adjacency(top_seq_matrix,mode='undirected')
+        igraph.plot(graph,'test.png')
 
-    with open('regressions.txt','w') as w_f:
-        'slop,intercept,r-value,p-value,stderr'
-        for num,shape,patch,r in regressions:
-            print >> w_f,'{0:<10}{1:<20}{2:<10}{3:<}'.format(num,shape,patch,';'.join(map(str,r)))
+
+
+        # regressions.append([num,shape,patch,linregress(seqs_score,hots_score)])
+        # plot_scatter(seqs_score,hots_score,filename+'_scatter')
+
+        # hots = adjust_hots(hots)
+        # hots = [(pro,''.join(hot)) for pro,hot in hots]
+        # plotlogo(hots,filename+'_logo')
+
+    # with open('regressions.txt','w') as w_f:
+        # 'slop,intercept,r-value,p-value,stderr'
+        # for num,shape,patch,r in regressions:
+            # print >> w_f,'{0:<10}{1:<20}{2:<10}{3:<}'.format(num,shape,patch,';'.join(map(str,r)))
 
 
 if __name__ == "__main__":
     main()
+
 
 
