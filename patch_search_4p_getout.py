@@ -60,43 +60,6 @@ class PatchSearchSpecific(PatchSearch):
 
         # return good_patches
 
-
-@lt.run_time
-def get_out_search():
-    with open(sys.argv[-1]) as wdsp_f:
-
-        CUTOFF = 20
-
-        wdsp = Wdsp(wdsp_f)
-        pros,seqs,wdsps,hotspots = wdsp.pros,wdsp.seqs,wdsp.wdsps,wdsp.hotspots
-
-        best = {}
-        pro_num = 1000000
-        while pro_num > CUTOFF:
-            a = PatchSearchSpecific(pros,seqs,wdsps,hotspots,CUTOFF)
-            a.get_patches()
-            a.classify_patches()
-            shape,patch,pro_list,pro_num = a.get_best()
-            if not shape in best.keys():
-                best[shape] = {}
-                best[shape][patch] = pro_list
-            else:
-                best[shape][patch] = pro_list
-
-            for pro in pro_list:
-                if pro in seqs.keys():
-                    pros.pop(pros.index(pro))
-                    seqs.pop(pro)
-                    wdsps.pop(pro)
-                    hotspots.pop(pro)
-
-    with open(sys.argv[-1]) as wdsp_f:
-        wdsp = Wdsp(wdsp_f)
-        write_results(best,wdsp.pros,wdsp.seqs,wdsp.wdsps,wdsp.hotspots,CUTOFF)
-
-
-get_out_search()
-
 @lt.run_time
 def main():
     with open(sys.argv[1]) as wdsp_f:
@@ -105,6 +68,7 @@ def main():
         a = PatchSearch(wdsp.pros,wdsp.seqs,wdsp.wdsps,wdsp.hotspots,CUTOFF)
         a.get_patches()
         a.classify_patches()
-        write_results(a.shape_patch_pros,wdsp.pros,wdsp.seqs,wdsp.wdsps,wdsp.hotspots,CUTOFF)
+        a.deredundant_patches()
+        a.write_results()
 
 # main()

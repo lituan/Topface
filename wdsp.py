@@ -41,7 +41,10 @@ class Wdsp():
                 pro_name = words[1]
                 # pro_name = words[1].split('|')[2]
                 self.pros.append(pro_name)
-                self.scores[pro_name] = float(words[2])
+                try:
+                    self.scores[pro_name] = float(words[2])
+                except:
+                    print words
                 pro_wdsp = [line]
             elif len(words) > 4:
                 pro_wdsp.append(line)

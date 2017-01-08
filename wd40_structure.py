@@ -29,7 +29,7 @@ def rcsb_customreport(pdbids):
     url = 'http://www.rcsb.org/pdb/rest/customReport.csv?'
     data = {
         'pdbids':pdbids,
-        'customReportColumns':'structureId,uniprotAcc,resolution,chainLength,releaseDate',
+        'customReportColumns':'structureId,uniprotAcc,entityId,resolution,chainLength,releaseDate',
         'service':'wsfile',
         'format':'csv',
     }
@@ -41,7 +41,6 @@ def rcsb_customreport(pdbids):
     lines = [line for line in lines if line]
     lines = [line.split(',') for line in lines]
     lines = [[w.strip('"') for w in line] for line in lines]
-    lines = [line for line in lines if line[2]]
     return lines
 
 def rcsb_acc(accs):
@@ -127,7 +126,7 @@ def uniprot_wd40():
     url = ' http://www.uniprot.org/uniprot/?'
     data ={
     'query':'keyword:"WD repeat" database:(type:pdb)',
-    'columns':'id,entry name, length,organism,database(PDB)',
+    'columns':'id,entry name,length,organism,database(PDB)',
     'format':'tab',
     'compress':'no',
     'inclue':'no',
@@ -143,6 +142,78 @@ def uniprot_wd40():
 
     return uniprot_wd40_acc
 
+def uniprot_acc(accs,columns='id,entry name,length,database(pfam),database(smart),database(supfam),database(interpro),database(PDB)'):
+    accs_list = ','.join(accs)
+    results = []
+    title = 0
+    for acc in accs:
+        url = ' http://www.uniprot.org/uniprot/?'
+        data ={
+        'query':'id: '+ acc,
+        'columns':columns,
+        'format':'tab',
+        'compress':'no',
+        'include':'no',
+        }
+        data = urllib.urlencode(data)
+        req = urllib2.Request(url,data)
+        response = urllib2.urlopen(req)
+        r = response.readlines()
+        if title == 0:
+            results += r
+            title = 1
+        else:
+            results.append(r[1])
+
+    lines = [line.rstrip('\r\n') for line in results]
+    lines = [line for line in lines if line]
+    lines = [line.split('\t') for line in lines]
+    return lines
+
+def uniprot_WD40(key='pfam',pdb=False,columns='id,entry name, length,organism,database(PDB)'):
+    """
+    use annotations from different database to query WD40 in uniprot
+    return a list of uniprot accesions
+    """
+    if   key == 'pfam':
+        query = 'database:(type:pfam id:PF00400)'
+    elif key == 'smart':
+        query = 'database:(type:smart id:SM00320)'
+    elif key == 'interpro_repeat':
+        query = 'database:(type:interpro id:IPR001680)'
+    elif key == 'interpro_domain':
+        query = 'database:(type:interpro id:IPR017986)'
+    elif key == 'supfam':
+        query = 'database:(type:supfam id:SSF50978)'
+    elif key == 'uniprot_keyword':
+        query = 'keyword:"WD repeat"'
+    elif key == 'uniprot_repeat':
+        query = 'annotation:(type:repeat wd)'
+    else:
+        print 'wrong query key'
+        return
+
+    if pdb:
+        query = query + ' AND '+ 'database:(type:pdb)'
+
+    url = ' http://www.uniprot.org/uniprot/?'
+    data ={
+    'query':query,
+    'columns':columns,
+    'format':'tab',
+    'compress':'no',
+    'inclue':'no',
+    }
+    data = urllib.urlencode(data)
+    req = urllib2.Request(url,data)
+    response = urllib2.urlopen(req)
+    r = response.readlines()
+    lines = [line.rstrip('\r\n') for line in r]
+    lines = [line for line in lines if line]
+    lines = [line.split('\t') for line in lines]
+    return lines
+    uniprot_wd_acc = set([line[0] for line in lines])
+    return uniprot_wd_acc
 def uniprot_map(query, f, t, format='tab'):
     """
     map one kind of id to another

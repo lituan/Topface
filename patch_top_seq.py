@@ -350,7 +350,7 @@ def single_fun(cluster):
     hots = [(pro,''.join(hot)) for pro,hot in hots]
     plotlogo(hots,filename+'_logo')
     slope,intercept,rvalue,pvalue,stderr = linregress(seqs_score,hots_score)
-    return [num,shape,patch,[slope,intercept,rvalue,pvalue,stderr]]
+    return [num,shape,patch,[slope,intercept,rvalue,pvalue,stderr],hots_score,seqs_score]
 
 with open(sys.argv[-1]) as wdsp_f:
     all_wdsp = Wdsp(wdsp_f)
@@ -365,14 +365,25 @@ def main():
     # regressions = []
 
     from multiprocessing import Pool
-    p = Pool(8)
+    p = Pool(7)
     regressions = p.map(single_fun,clusters)
     p.close()
 
-    with open('regressions.txt','w') as w_f:
+    with open('top_seq_regressions.txt','w') as w_f:
         'slop,intercept,r-value,p-value,stderr'
-        for num,shape,patch,r in regressions:
+        for num,shape,patch,r,_,_ in regressions:
             print >> w_f,'{0:<10}{1:<20}{2:<10}{3:<}'.format(num,shape,patch,';'.join(map(str,r)))
+
+    with open('top_seq_pair_score_mean.txt','w') as w_f:
+        for num,shape,patch,_,hots_score,seqs_score in regressions:
+            print >> w_f,'{0:<10}{1:<20}{2:<20}{3:<15}{4:<15}'.format(num,shape,patch,np.mean(hots_score),np.mean(seqs_score))
+
+    with open('top_seq_pair_score.txt','w') as w_f:
+        for num,shape,patch,_,hots_score,seqs_score in regressions:
+            print >> w_f,'{0:<10}{1:<20}{2:<20}'.format(num,shape,patch)
+            print >> w_f,'{0:<25}{1:<}'.format('hots_pair_score',','.join(map(str,hots_score)))
+            print >> w_f,'{0:<25}{1:<}'.format('seqs_pair_score',','.join(map(str,seqs_score)))
+
 
 
 if __name__ == "__main__":
