@@ -181,6 +181,8 @@ def single_fun(sim_num):
         slope,intercept,rvalue,pvalue,stderr = linregress(seqs_score,hots_score)
         regressions.append([slope,intercept,rvalue,pvalue,stderr,np.mean(hots_score),np.mean(seqs_score)])
 
+
+
     filename = 'sim_top_seq_regression_'+str(bootstrap_num)+'_'+str(cluster_num)
     with open(filename+'.txt','w') as w_f:
         'slop,intercept,r-value,p-value,stderr'
@@ -188,22 +190,43 @@ def single_fun(sim_num):
         for r in regressions:
             print >> w_f,';'.join(map(str,r))
 
+    slops = [r[0] for r in regressions]
+    sns.distplot(slops)
+    plt.savefig(filename+'_slope'+'.png',dpi=300)
+    plt.close('all')
+
+    intercept = [r[1] for r in regressions]
+    sns.distplot(intercept)
+    plt.savefig(filename+'_intercept'+'.png',dpi=300)
+    plt.close('all')
+
+    hots_score_mean = [r[-2] for r in regressions]
+    sns.distplot(hots_score_mean)
+    plt.savefig(filename+'_hots_score_mean'+'.png',dpi=300)
+    plt.close('all')
+
+    seqs_score_mean = [r[-1] for r in regressions]
+    sns.distplot(seqs_score_mean)
+    plt.savefig(filename+'_seqs_score_mean'+'.png',dpi=300)
+    plt.close('all')
+
 with open(sys.argv[-1]) as wdsp_f:
     all_wdsp = Wdsp(wdsp_f)
     all_hots = all_wdsp.hotspots
     all_seqs = all_wdsp.seqs
     pros = all_wdsp.pros
 
+import lt
+@lt.run_time
 def main():
 
     sim_num = []
-    for cluster_num in range(10,250,10):
-    # for cluster_num in [10,]:
-        # for bootstrap_num in range(1000,15000,1000):
-        for bootstrap_num in [10000]:
+    # for cluster_num in range(10,250,10):
+    for cluster_num in [50]:
+        for bootstrap_num in range(1000,15000,1000):
             sim_num.append([cluster_num,bootstrap_num])
 
-    p = Pool(1)
+    p = Pool(5)
     p.map(single_fun,sim_num)
     p.close()
 
