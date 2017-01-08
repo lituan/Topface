@@ -31,8 +31,9 @@ with open(sys.argv[-1]) as o_f:
         acc = p[0]
         year = int(str(p[6]).split('-')[0])
         years[year-begin_year].append(acc)
+    years = map(set,years)
     wd = pd.DataFrame({'Year':range(begin_year,end_year+1),'Num of WD40':map(len,years)})
-    f,ax = plt.subplots()
+    f,ax = plt.subplots(figsize=(8,6))
     sns.set_color_codes('pastel')
     sns.barplot(x='Year',y='Num of WD40',data=wd,color='b')
     ax.set(xlabel='Year',ylabel='Num of WD40',title='WD40 Structures per Year')

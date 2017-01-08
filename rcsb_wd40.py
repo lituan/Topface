@@ -247,11 +247,13 @@ def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
 
     lt.pickle_dump(wd40s,'wd40s')
     f,ax = plt.subplots()
-    wd = pd.DataFrame({'Database':keywords,'Num of WD40':map(len,wd40s)})
+    keys = ['pfam','smart','supfam','uniprot1','uniprot2','prosite1','prosite2','prosite3']
+    wd = pd.DataFrame({'Database':keys,'Num of WD40':map(len,wd40s)})
     wd = wd.sort_values('Num of WD40',ascending=True)
     sns.set_color_codes('pastel')
     sns.barplot(x='Database',y='Num of WD40',data=wd,color='b')
     ax.set(xlabel='Database',ylabel='Num of WD40',title='Annotation of WD40 in UniProt')
+    # plt.xticks(roation=90)
     plt.savefig('annotation_wd40_in_uniprot_accs',dpi=300)
     plt.close('all')
 
@@ -286,9 +288,30 @@ def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
         pdb_scores.append(p+[acc_score(p[2])])
     pdb_scores = sorted(pdb_scores,key=lambda x:x[-1],reverse=True)
     with open('uniprot_pdb_scores.txt','w') as w_f:
-        print >> w_f,'{0:<15}{1:<10}{2:<8}{3:<8}{4:<8}{5:<8}{6:<14}{7:<8}'.format('acc','pdb','chain','entity','resolution','chain_len','release','score')
+        print >> w_f,'{0:<15}{1:<10}{2:<8}{3:<8}{4:<15}{5:<8}{6:<18}{7:<8}'.format('acc','pdb','chain','entity','resolution','chain_len','release','score')
         for p in pdb_scores:
-            print >> w_f,'{0:<15}{1:<10}{2:<8}{3:<8}{4:<8}{5:<8}{6:<14}{7:<8}'.format(p[2],p[0],p[1],p[3],p[4],p[5],p[6],p[7])
+            print >> w_f,'{0:<15}{1:<10}{2:<8}{3:<8}{4:<15}{5:<8}{6:<18}{7:<8}'.format(p[2],p[0],p[1],p[3],p[4],p[5],p[6],p[7])
+
+    # plot trend of num 0f wd40 structures by year
+    from datetime import datetime
+    begin_year = min([int(str(p[6]).split('-')[0]) for p in pdb_scores])
+    end_year = datetime.now().year
+    num = end_year-begin_year+1
+    years = [[] for i in range(num)]
+    for p in pdb_scores:
+        acc = p[0]
+        year = int(str(p[6]).split('-')[0])
+        years[year-begin_year].append(acc)
+    years = map(set,years)
+    wd = pd.DataFrame({'Year':range(begin_year,end_year+1),'Num of WD40':map(len,years)})
+    f,ax = plt.subplots(figsize=(8,6))
+    sns.set_color_codes('pastel')
+    sns.barplot(x='Year',y='Num of WD40',data=wd,color='b')
+    ax.set(xlabel='Year',ylabel='Num of WD40',title='WD40 Structures per Year')
+    plt.xticks(rotation=90)
+    plt.savefig('WD40 Structures per Year',dpi=300)
+    plt.close('all')
+
 
     pdb_acc_scores = [[] for i in range(9)]
     for p in pdb_scores:
@@ -487,7 +510,7 @@ def rcsb_txt(beta=15,chain_len=150,resolution=3.5):
 
 @lt.run_time
 def main():
-    beta,chain_len,resolution = 15,150,3.5
+    beta,chain_len,resolution = 15,150,3.0
     uniprot_pdbids,pdb_scores = rcsb_uniprot(beta,chain_len,resolution)
     scop_pdbids = rcsb_scop(beta,chain_len,resolution)
     pfam_pdbids = rcsb_pfam(beta,chain_len,resolution)
