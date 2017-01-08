@@ -8,7 +8,7 @@ mark two pros with topface similarity greater than 0.8 as orthologs
 2. plot logo of hotspots of  pros
 3. plot topface_seq scatter plot of pros
 
-usage: python patch_top_seq.py patch_sta.txt all_nr.wdsp
+usage: python patch_top_seq_clique.py patch_sta.txt all_nr.wdsp
 """
 
 import sys
@@ -32,6 +32,8 @@ from matplotlib.patches import PathPatch
 from svgpath2mpl import parse_path
 from xml.dom import minidom
 
+import igraph
+from multiprocessing import Pool
 
 from wdsp import Wdsp
 
@@ -357,37 +359,48 @@ def matrix_to_pair(matrix):
                 pair.append(matrix[i][j])
     return pair
 
+def single_fun(cluster):
+
+    num,shape,patch,pros = cluster
+    filename = str(num)+'_'+shape+'_'+patch
+    hots = [[pro,all_hots[pro]] for pro in pros]
+    seqs = [[pro,all_wdsp.seqs[pro]] for pro in pros]
+    hots_score = align_hots([hot[1] for hot in hots])
+    seqs_score = align_seqs([seq[1] for seq in seqs])
+
+    hots_score_matrix = pair_to_matrix(hots_score)
+    seqs_score_matrix = pair_to_matrix(seqs_score)
+    top_seq_matrix = np.array(hots_score_matrix) - np.array(seqs_score_matrix)
+    top_seq_matrix = [[1 if e > 0.01 else 0 for e in line ] for line in top_seq_matrix]
+    for i in range(len(top_seq_matrix)):
+        top_seq_matrix[i][i]  = 0
+    graph = igraph.Graph.Adjacency(top_seq_matrix,mode='undirected')
+    mc = graph.maximal_cliques()
+    mcm = sorted(mc,key=lambda x:len(x),reverse=True)[0]
+    visual_style = {}
+    # visual_style['vertex_label'] = labels
+    # visual_style['vertex_label_size'] = 2
+    visual_style['layout'] = graph.layout('kk')
+    # igraph.plot(graph,filename+'_graph.png',**visual_style)
+
+    good_pros = [pros[i] for i in mcm]
+    return [len(good_pros),shape,patch,good_pros]
+
+with open(sys.argv[-1]) as wdsp_f:
+    all_wdsp = Wdsp(wdsp_f)
+    all_hots = all_wdsp.hotspots
+    all_seqs = all_wdsp.seqs
 
 import lt
 @lt.run_time
 def main():
 
-    with open(sys.argv[-1]) as wdsp_f:
-        all_wdsp = Wdsp(wdsp_f)
-        all_hots = all_wdsp.hotspots
-        all_seqs = all_wdsp.seqs
 
 
     clusters = read_patch_pros()
-    regressions = []
-    for num,shape,patch,pros in clusters:
-        filename = str(num)+'_'+shape+'_'+patch
-        hots = [[pro,all_hots[pro]] for pro in pros]
-        seqs = [[pro,all_wdsp.seqs[pro]] for pro in pros]
-        hots_score = align_hots([hot[1] for hot in hots])
-        seqs_score = align_seqs([seq[1] for seq in seqs])
-
-        hots_score_matrix = pair_to_matrix(hots_score)
-        seqs_score_matrix = pair_to_matrix(seqs_score)
-        top_seq_matrix = np.array(hots_score_matrix) - np.array(seqs_score_matrix)
-        top_seq_matrix = [[1 if e > 0 else 0 for e in line ] for line in top_seq_matrix]
-        for i in range(len(top_seq_matrix)):
-            top_seq_matrix[i][i]  = 0
-        import igraph
-        graph = igraph.Graph.Adjacency(top_seq_matrix,mode='undirected')
-        igraph.plot(graph,'test.png')
-
-
+    p = Pool(8)
+    result = p.map(single_fun,clusters)
+    p.close()
 
         # regressions.append([num,shape,patch,linregress(seqs_score,hots_score)])
         # plot_scatter(seqs_score,hots_score,filename+'_scatter')
@@ -401,6 +414,10 @@ def main():
         # for num,shape,patch,r in regressions:
             # print >> w_f,'{0:<10}{1:<20}{2:<10}{3:<}'.format(num,shape,patch,';'.join(map(str,r)))
 
+    with open('after_maximal_clique_filter.txt','w') as w_f:
+        for len_pros, shape, patch, pros in result:
+            print >> w_f, '{0:<10}{1:<20}{2:<10}{3:<}'.format(
+                len_pros, shape, patch,','.join(pros))
 
 if __name__ == "__main__":
     main()
