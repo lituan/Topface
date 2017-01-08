@@ -9,6 +9,7 @@ import os
 import urllib
 import urllib2
 import pandas as pd
+from multiprocessing import Pool
 
 
 import lt
@@ -19,7 +20,7 @@ def uniprot_wd40(key='pfam',pdb=False):
     return a list of uniprot accesions
     """
     if   key == 'pfam':
-        query = 'database:(type:pfam id:PF00400)'
+        query = 'database:(type:pfam id:PF00400) OR database:(type:pfam id:PF12894) OR database:(type:pfam id:PF16529) OR database:(type:pfam id:PF16756)'
     elif key == 'smart':
         query = 'database:(type:smart id:SM00320)'
     elif key == 'supfam':
@@ -51,10 +52,17 @@ def uniprot_wd40(key='pfam',pdb=False):
     'format':'list',
     }
     data = urllib.urlencode(data)
-    req = urllib2.Request(url,data)
-    response = urllib2.urlopen(req)
-    r = response.readlines()
-    lines = set([line.rstrip('\r\n') for line in r])
+    for i in range(10):
+        try:
+            req = urllib2.Request(url,data)
+            response = urllib2.urlopen(req)
+            r = response.readlines()
+            lines = set([line.rstrip('\r\n') for line in r])
+            print 'uniprot search ',key,' is finished'
+            print len(lines),' entries got'
+            break
+        except:
+            continue
 
     return lines
 
@@ -84,30 +92,35 @@ def write_lis_lis(lis_lis,filename,cols=[]):
 @lt.run_time
 def main():
     keywords = ['pfam','smart','supfam','interpro_repeat','interpro_domain','uniprot_repeat','uniprot_keyword','prosite1','prosite2','prosite3']
-    wd40s = []
-    for key in keywords:
-        for i in range(10):
-            try:
-                wd40s.append(uniprot_wd40(key))
-            except:
-                continue
-            break
+    p = Pool(10)
+    wd40s = p.map(uniprot_wd40,keywords)
+    p.close()
 
-    total = set.union(*map(set,wd40s))
+    # total = set.union(*map(set,wd40s))
+    # wd40s_score = [[] for i in range(10)]
+    # def acc_score(acc):
+        # i = 0
+        # for w in wd40s:
+            # if acc in w:
+                # i += 1
+        # return i
+    # for acc in total:
+        # num = acc_score(acc)
+        # wd40s_score[num-1].append(acc)
+
+    from collections import Counter
+    ww = []
+    for w in wd40s:
+        ww += w
+    c = Counter(ww)
     wd40s_score = [[] for i in range(10)]
-    def acc_score(acc):
-        i = 0
-        for w in wd40s:
-            if acc in w:
-                i += 1
-        return i
-    for acc in total:
-        num = acc_score(acc)
-        wd40s_score[num-1].append(acc)
+    for k,v in c.iteritems():
+        wd40s_score[v-1].append(k)
 
-    write_lis_lis(wd40s_score,'uniprot_wd40_score',[str(i) for i in range(1,11)])
 
-    write_lis_lis(wd40s,'uniprot_wd40',keywords)
+    write_lis_lis(wd40s_score,'uniprot_wd40_score_counter',[str(i) for i in range(1,11)])
+
+    write_lis_lis(wd40s,'uniprot_wd40_counter',keywords)
 
 
 if __name__ == "__main__":
