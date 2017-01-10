@@ -123,7 +123,7 @@ def uniprot_wd40(key='pfam',pdb=False):
             break
         except IncompleteRead:
             continue
-    return lines
+    return key,lines
 
 @lt.run_time
 def rcsb_acc(accs,beta=15,chain_len=150,resolution=3.5):
@@ -239,8 +239,14 @@ def get_wdsp_acc():
 def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
     keywords = ['pfam','smart','supfam','uniprot_repeat','uniprot_keyword','prosite1','prosite2','prosite3']
     p = Pool(8)
-    wd40s = p.map(uniprot_wd40,keywords)
+    result = p.map(uniprot_wd40,keywords)
     p.close()
+    wd40s = []
+    for k in keywords:
+        for r,v in result:
+            if r == k:
+                wd40s.append(v)
+    # wd40s = [v for k in keywords for r,v in result if r == k]
     wdsp = get_wdsp_acc()
     wd40s.append(wdsp)
     keywords.append('wdsp')
@@ -249,13 +255,14 @@ def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
     f,ax = plt.subplots()
     keys = ['Pfam','SMART','Superfamily','UniProt1','UniProt2','Prosite1','Prosite2','Prosite3','WDSP']
     wd = pd.DataFrame({'Database':keys,'Num':map(len,wd40s)})
-    wd = wd.sort_values('Num of WD40',ascending=True)
+    wd = wd.sort_values('Num',ascending=True)
     sns.set_color_codes('pastel')
     sns.barplot(x='Database',y='Num',data=wd,color='b')
     ax.set(xlabel='Database',ylabel='Num',title='WD40 Annotated by Different Database')
     # plt.xticks(roation=90)
     plt.savefig('wd40_annotated_by_different_databases_accs',dpi=300)
     plt.close('all')
+    write_lis_lis(wd40s,'wd40_annotated_by_different_databases_accs',keys)
 
     total = set.union(*map(set,wd40s))
     # if an entry apears in n different querys, its score is n
@@ -276,9 +283,9 @@ def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
     sns.set_color_codes('pastel')
     sns.barplot(x='Database Score',y='Num',data=wd,color='b')
     ax.set(xlabel='Database Score',ylabel='Num',title='Annotation Score of WD40 in UniProt')
-    plt.savefig('score_wd40_in_uniprot_accs',dpi=300)
+    plt.savefig('wd40_annotation_score_in_uniprot_accs',dpi=300)
     plt.close('all')
-    write_lis_lis(wd40s_score,'uniprot_wd40_acc_scores',[str(i) for i in range(1,10)])
+    write_lis_lis(wd40s_score,'wd40_annotation_score_in_uniprot_accs',[str(i) for i in range(1,10)])
 
     # uniprot_pdbids = rcsb_acc(total,beta,chain_len,resolution)
     # report = rcsb_customreport(uniprot_pdbids)
@@ -294,8 +301,9 @@ def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
 
 
     # plot wd40 structures annotated by different database
-    total_pdb = set([p[0] for p in pdb_scores])
+    total_pdb = set([p[2] for p in pdb_scores])
     wd40s_pdb = [[a for a in w if a in total_pdb] for w in wd40s]
+    lt.pickle_dump(wd40s_pdb,'pdb_acc_databases')
     f,ax = plt.subplots()
     keys = ['Pfam','SMART','Superfamily','UniProt1','UniProt2','Prosite1','Prosite2','Prosite3','WDSP']
     wd = pd.DataFrame({'Database':keys,'Num':map(len,wd40s_pdb)})
@@ -306,6 +314,7 @@ def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
     # plt.xticks(roation=90)
     plt.savefig('wd40_structures_annotated_by_different_database',dpi=300)
     plt.close('all')
+    write_lis_lis(wd40s_pdb,'wd40_structures_annotated_by_different_database',keys)
 
     # plot annotation score of wd40 structures
     pdb_acc_scores = [[] for i in range(9)]
@@ -319,9 +328,9 @@ def rcsb_uniprot(beta=15,chain_len=150,resolution=3.5):
     sns.set_color_codes('pastel')
     sns.barplot(x='Database Score',y='Num',data=wd,color='b')
     ax.set(xlabel='Database Score',ylabel='Num',title='Annotation Score of WD40 Structures')
-    plt.savefig('annotation_score_of_wd40_structures_accs',dpi=300)
+    plt.savefig('wd40_structures_annotation_score_accs',dpi=300)
     plt.close('all')
-    write_lis_lis(pdb_acc_scores,'annotation_score_of_wd40_structures_accs',[str(i) for i in range(1,10)])
+    write_lis_lis(pdb_acc_scores,'wd40_structures_annotation_score_accs',[str(i) for i in range(1,10)])
 
     print 'uniprot search is finished'
     return uniprot_pdbids,pdb_scores
@@ -505,7 +514,7 @@ def rcsb_txt(beta=15,chain_len=150,resolution=3.5):
 
 @lt.run_time
 def main():
-    beta,chain_len,resolution = 15,150,3.0
+    beta,chain_len,resolution = 16,160,3.0
     uniprot_pdbids,pdb_scores = rcsb_uniprot(beta,chain_len,resolution)
     scop_pdbids = rcsb_scop(beta,chain_len,resolution)
     pfam_pdbids = rcsb_pfam(beta,chain_len,resolution)
@@ -546,12 +555,12 @@ def main():
     total = set.union(*map(set,[uniprot,scop,pfam,txt]))
     sns.set_color_codes('pastel')
     methods = ['UniProt','Pfam','Txt','SCOP']
-    wd = pd.DataFrame({'Search Method':methods,'Num of WD40':map(len,[total,total,total,total])})
-    sns.barplot(x='Search Method',y='Num of WD40',data=wd,color='b')
+    wd = pd.DataFrame({'Search Method':methods,'Num':map(len,[total,total,total,total])})
+    sns.barplot(x='Search Method',y='Num',data=wd,color='b')
     sns.set_color_codes('muted')
-    wd = pd.DataFrame({'Search Method':methods,'Num of WD40':map(len,[uniprot,pfam,txt,scop])})
-    sns.barplot(x='Search Method',y='Num of WD40',data=wd,color='b')
-    ax.set(xlabel='Search Method',ylabel='Num of WD40',title='WD40 Structures in RCSB')
+    wd = pd.DataFrame({'Search Method':methods,'Num':map(len,[uniprot,pfam,txt,scop])})
+    sns.barplot(x='Search Method',y='Num',data=wd,color='b')
+    ax.set(xlabel='Search Method',ylabel='Num',title='WD40 Structures in RCSB')
     plt.savefig('wd40_in_RCSB_pdbs',dpi=300)
     plt.close('all')
 
