@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-select wd40s with repeats 6n,7n,8n
+select wd648s with repeats 6n,7n,8n
 """
 from wdsp import Wdsp
 
 with open('wd648_uniprot.wdsp') as wdsp_f:
     wdsp = Wdsp(wdsp_f)
 
-    with open('wd40_uniprot_select.wdsp','w') as w_f:
+    with open('wd648_uniprot_select.wdsp','w') as w_f:
         for pro,pro_wdsp in wdsp.wdsps.iteritems():
             r_num = wdsp.repeat_num[pro]
             title = pro_wdsp[0].split()

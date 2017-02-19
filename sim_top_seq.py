@@ -172,7 +172,8 @@ def single_fun(sim_num):
         seqs = [[pro,all_wdsp.seqs[pro]] for pro in clusters]
         hots_score = align_hots([hot[1] for hot in hots])
         seqs_score = align_seqs([seq[1] for seq in seqs])
-        # plot_scatter(seqs_score,hots_score,filename+'_scatter')
+        filename = 'random'+randint(0,10000)
+        plot_scatter(seqs_score,hots_score,filename+'_scatter')
 
         # hots = adjust_hots(nr_hots)
         # hots = [(pro,''.join(hot)) for pro,hot in hots]
@@ -200,10 +201,10 @@ def main():
     for cluster_num in range(10,250,10):
     # for cluster_num in [10,]:
         # for bootstrap_num in range(1000,15000,1000):
-        for bootstrap_num in [10000]:
+        for bootstrap_num in [1000,2000]:
             sim_num.append([cluster_num,bootstrap_num])
 
-    p = Pool(1)
+    p = Pool(4)
     p.map(single_fun,sim_num)
     p.close()
 

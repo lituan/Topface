@@ -15,7 +15,7 @@ class PatchSearchSpecific(PatchSearch):
         PatchSearch.__init__(self, pros, seqs, wdsps, hotspots, cutoff)
     #   self.SHAPES = {
     #       'shape_4_1_2_b':	((0, 0), (0, 2), (1, 1), (1, 2)),
-    #       'shape_4_2_2_b':	((0, 0), (0, 2), (1, 0), (1, 2)),
+    #       'shape_4_2_2_b':	((0, 0), (0, 2), (1, 0), (1, 2)), # fbxw7
     #       }
         self.shapes = {
             'shape_4_1_1_a':	((1, 2), (2, 0), (2, 1), (2, 2)),
