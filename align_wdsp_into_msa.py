@@ -28,6 +28,49 @@ def trans_lis_lis(lis_lis):
               for i in range(lis_max_len)] for j in range(lis_lis_len)]
     return trans
 
+def align_score(msa,column_cutoff=0.95,score_cutoff=0.80,bad_columns_cutoff=5):
+    """
+    sequence align score = matched aa /all aa
+    matched aa is in a column, 95% is not indel
+    msa format [['pro','ACT-G...']...]
+    """
+
+    # filter bad sequence, which has many bad columns (have many '-')
+    seq_len = len(msa[0][1])
+    columns = [[s[1][i] for s in msa] for i in range(seq_len)]
+    columns = [i for i,c in enumerate(columns) if len([ci for ci in c if ci == '-'])*1.0/len(c) > column_cutoff]
+    msa_bad_columns = [[len([s[1][i] for i in columns if s[1][i] != '-']),s[0],s[1]] for s in msa ]
+    msa = [(pro,seq) for bad_columns,pro,seq in msa_bad_columns if bad_columns < bad_columns_cutoff]
+    # find columns that are all '-', and elimit them
+    columns = [[s[1][i] for s in msa] for i in range(seq_len)]
+    columns = [i for i,c in enumerate(columns) if len([ci for ci in c if ci == '-'])*1.0/len(c) < 1.0]
+    msa = [(pro,''.join([seq[i] for i in columns])) for pro,seq in msa]
+
+    # filter bad sequence, which has '-' in good columns (have little '-')
+    seq_len = len(msa[0][1])
+    columns = [[s[1][i] for s in msa] for i in range(seq_len)]
+    columns = [i for i,c in enumerate(columns) if len([ci for ci in c if ci != '-'])*1.0/len(c) > column_cutoff]
+    msa_bad_columns = [[len([s[1][i] for i in columns if s[1][i] == '-']),s[0],s[1]] for s in msa ]
+    msa = [(pro,seq) for bad_columns,pro,seq in msa_bad_columns if bad_columns < bad_columns_cutoff]
+    # find columns that are all '-', and elimit them
+    columns = [[s[1][i] for s in msa] for i in range(seq_len)]
+    columns = [i for i,c in enumerate(columns) if len([ci for ci in c if ci == '-'])*1.0/len(c) < 1.0]
+    msa = [(pro,''.join([seq[i] for i in columns])) for pro,seq in msa]
+
+    # calculate score
+    seq_len = len(msa[0][1])
+    columns = [[s[1][i] for s in msa] for i in range(seq_len)]
+    columns = [i for i,c in enumerate(columns) if len([ci for ci in c if ci != '-'])*1.0/len(c) > column_cutoff]
+    msa_scores = [[len([s[1][i] for i in columns if s[1][i] != '-'])*1.0/len([si for si in s[1] if si != '-']),s[0],s[1]] for s in msa ]
+    msa = [(pro,seq) for score,pro,seq in msa_scores if score > score_cutoff]
+    # find columns that are '-', and elimit them
+    columns = [[s[1][i] for s in msa] for i in range(seq_len)]
+    columns = [i for i,c in enumerate(columns) if len([ci for ci in c if ci == '-'])*1.0/len(c) < 1.0]
+    msa = [(pro,''.join([seq[i] for i in columns])) for pro,seq in msa]
+    # msa_scores = sorted(msa_scores,key=lambda x: x[0],reverse=True)
+    return msa
+
+
 def main():
     with open(sys.argv[-1]) as o_f:
         lines = o_f.readlines()
@@ -54,16 +97,26 @@ def main():
             entries_new.append(combine)
         entries_new = trans_lis_lis(entries_new)
 
-        # write out new aligned wdsp files
-        with open('align_wdsp_into_msa.meg', 'w') as w_f:
-            print >> w_f, '#mega'
-            print >> w_f,'Title:WDSP Alignment'
-            for entry in entries_new:
-                print >> w_f,'#{0}'.format(entry[0])
-                seq = ''.join(entry[1:])
+        msa = [[s[0].strip(' '),''.join(s[1:])]for s in entries_new]
+        msa = align_score(msa,column_cutoff=0.95,score_cutoff=0.80,bad_columns_cutoff=5)
+
+        print 'origin: ',len(entries_new)
+        print 'now: ',len(msa)
+        with open('align_wdsp_into_msa.fas', 'w') as w_f:
+            for pro,seq in msa:
+                print >> w_f,'>{0}'.format(pro)
                 seqs = [seq[i:i+80] for i in range(0,len(seq),80)]
-                for seq in seqs:
-                    print >> w_f,seq
+                for s in seqs:
+                    print >> w_f,s
+
+        with open('wdsp_into_msa.fas', 'w') as w_f:
+            for pro,seq in msa:
+                seq = seq.rstrip('-')
+                seq = seq.replace('-','')
+                print >> w_f,'>{0}'.format(pro)
+                seqs = [seq[i:i+80] for i in range(0,len(seq),80)]
+                for s in seqs:
+                    print >> w_f,s
 
 
 if __name__ == "__main__":
