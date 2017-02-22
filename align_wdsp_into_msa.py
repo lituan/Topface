@@ -67,7 +67,6 @@ def align_score(msa,column_cutoff=0.95,score_cutoff=0.80,bad_columns_cutoff=5):
     columns = [[s[1][i] for s in msa] for i in range(seq_len)]
     columns = [i for i,c in enumerate(columns) if len([ci for ci in c if ci == '-'])*1.0/len(c) < 1.0]
     msa = [(pro,''.join([seq[i] for i in columns])) for pro,seq in msa]
-    # msa_scores = sorted(msa_scores,key=lambda x: x[0],reverse=True)
     return msa
 
 
@@ -75,7 +74,7 @@ def main():
     with open(sys.argv[-1]) as o_f:
         lines = o_f.readlines()
         # strip end of line symbol and empty lines
-        lines = [line.strip('\r\n') for line in lines]
+        lines = [line.rstrip('\r\n') for line in lines]
         lines = [line for line in lines if line]
         # cut into entries
         begin = [i for i, line in enumerate(lines) if '>' in line]
@@ -97,26 +96,32 @@ def main():
             entries_new.append(combine)
         entries_new = trans_lis_lis(entries_new)
 
+        column_cutoff = 0.95
+        score_cutoff = 0.80
+        bad_columns_cutoff = 5
         msa = [[s[0].strip(' '),''.join(s[1:])]for s in entries_new]
-        msa = align_score(msa,column_cutoff=0.95,score_cutoff=0.80,bad_columns_cutoff=5)
+        msa = align_score(msa,column_cutoff=0.95,score_cutoff=0.80,bad_columns_cutoff=4)
 
         print 'origin: ',len(entries_new)
         print 'now: ',len(msa)
-        with open('align_wdsp_into_msa.fas', 'w') as w_f:
+        fname = os.path.split(sys.argv[-1])[1].split('.')[0] + '_' + str(column_cutoff) +'_'+str(score_cutoff)+'_'+str(bad_columns_cutoff)
+        with open(fname+'_align_wdsp_into_msa.fas', 'w') as w_f:
             for pro,seq in msa:
                 print >> w_f,'>{0}'.format(pro)
-                seqs = [seq[i:i+80] for i in range(0,len(seq),80)]
-                for s in seqs:
-                    print >> w_f,s
+                s = [seq[i:i+80] for i in range(0,len(seq),80)]
+                for si in s:
+                    print >> w_f,si
 
-        with open('wdsp_into_msa.fas', 'w') as w_f:
+        with open(fname+'_align_wdsp_into_msa_seq.fas', 'w') as w_f:
             for pro,seq in msa:
-                seq = seq.rstrip('-')
                 seq = seq.replace('-','')
                 print >> w_f,'>{0}'.format(pro)
                 seqs = [seq[i:i+80] for i in range(0,len(seq),80)]
                 for s in seqs:
                     print >> w_f,s
+        with open(fname+'_ids.txt','w') as w_f:
+            for pro,seq in msa:
+                print >> w_f,pro
 
 
 if __name__ == "__main__":
