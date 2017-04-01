@@ -3,10 +3,12 @@
 
 """
 workflow
-1. search sequences with similar hotspots (hotspot_cutoff)
-2. plot logo of hotspots
+mark two pros with topface similarity greater than 0.8 as orthologs
+1. find clusters of orthologs
+2. plot logo of hotspots of  orthlogs
+3. plot topface_seq scatter plot of orthlogs
 
-usage: python hotspot_similar_search_v4.py tem.wdsp all.wdsp
+usage: python ortholog_top_seq.py all_nr.wdsp
 """
 
 import sys
@@ -23,21 +25,22 @@ import scipy.cluster.hierarchy as sch
 import scipy.spatial.distance as spd
 from collections import OrderedDict
 
+from scipy.stats import linregress
 from matplotlib.path import Path
 from matplotlib import ticker
 from matplotlib.patches import PathPatch
 from svgpath2mpl import parse_path
 from xml.dom import minidom
-from Bio import pairwise2
-from Bio.SubsMat import MatrixInfo as matlist
+import cPickle as pickle
 from multiprocessing import Pool
 
+from Bio import pairwise2
+from Bio.SubsMat import MatrixInfo as matlist
 from wdsp import Wdsp
-
+from blosum import BLOSUM62
 
 
 def needleman_wunsch(hot1, hot2):
-    from blosum import BLOSUM45, BLOSUM62
     seq_matrix = BLOSUM62
     UP,LEFT,DIAG,INDEL = 1,2,0,-7
 
@@ -111,7 +114,6 @@ def needleman_wunsch(hot1, hot2):
 
     return aligned_hot1,aligned_hot2
 
-
 def align_hot(p):
     i1,i2,hot1,hot2 = p
     aligned_hot1,aligned_hot2 = needleman_wunsch(hot1,hot2)
@@ -143,7 +145,6 @@ def get_hot_similarity(hots):
             if j > i:
                 pair_scores.append(scores[i][j])
     return pair_scores
-
 
 def align_seq(p):
     s1,s2,seq1,seq2 = p
@@ -184,23 +185,6 @@ def get_seq_similarity(seqs):
                 pair_scores.append(scores[i][j])
     return pair_scores
 
-
-def get_similar_hots(tem_hots, all_hots, cutoff=0):
-    tem_all_hots = {}
-    for pro, hot in tem_hots.iteritems():
-        similar = []
-        i = 0
-        for p, h in all_hots.iteritems():
-            if not p == pro:
-                _,_,identity = align_hot([1,1,hot,h])
-                if identity >= cutoff:
-                    similar.append((p,identity))
-                i +=1
-                # print i
-        similar = sorted(similar,key=operator.itemgetter(1),reverse=True)
-        tem_all_hots[pro] = similar
-
-    return tem_all_hots
 
 
 def plot_scatter(seq_identity,topface_identity,filename):
@@ -340,42 +324,44 @@ def adjust_hots(hots):
         new_hots.append([hot[0],ah2])
     return new_hots
 
+
 def main():
 
-    with open(sys.argv[-2]) as wdsp_f:
-        tem_wdsp = Wdsp(wdsp_f)
-        tem_hots = tem_wdsp.hotspots
-        with open(sys.argv[-1]) as wdsp_f:
-            all_wdsp = Wdsp(wdsp_f)
-            all_hots = all_wdsp.hotspots
+    fname = os.path.split(sys.argv[-1])[1].split('.')[0]
+    with open(sys.argv[-1]) as wdsp_f:
+        all_wdsp = Wdsp(wdsp_f)
+        all_hots = all_wdsp.hotspots
+        all_seqs = all_wdsp.seqs
 
+        hots = [[pro,hots] for pro,hots in all_hots.iteritems()]
+        seqs = [[pro,seq] for pro,seq in all_seqs.iteritems()]
+        # hots_score = get_hot_similarity(hots)
+        # seqs_score = get_seq_similarity(seqs)
+        # pickle.dump([hots_score,seqs_score],open('hots_seqs_score.pickle','w'))
+        hots_score,seqs_score = pickle.load(open('hots_seqs_score.pickle'))
 
-    cutoff = 0.0
-    for cutoff in [0.3,0.4,0.5,0.6,0.7,0.8,0.9]:
-    # for cutoff in [30,40,50,60,70,80,90]:
-        tem_all_hots = get_similar_hots(tem_hots, all_hots,cutoff)
-        for tem_pro, all_pros in tem_all_hots.iteritems():
-            hots = [[pro,all_hots[pro]] for pro,_ in all_pros]
-            seqs = [[pro,all_wdsp.seqs[pro]] for pro,_ in all_pros]
-            hots_score = get_hot_similarity(hots)
-            seqs_score = get_seq_similarity(seqs)
-            plot_scatter(seqs_score,hots_score,tem_pro+'_'+str(cutoff))
+        # plot_scatter(seqs_score,hots_score,fname+'_scatter')
 
-            hots = adjust_hots(hots)
-            hots_len = len(hots)
-            hots = [(pro,''.join(hot)) for pro,hot in hots]
-            plotlogo(hots,str(hots_len)+'_'+tem_pro+'_'+str(cutoff))
+        # hots = adjust_hots(hots)
+        # hots = [(pro,''.join(hot)) for pro,hot in hots]
+        # plotlogo(hots,fname+'_logo')
 
-            f,ax = plt.subplots()
-            fig = plt.figure(figsize=(5,4))
-            ax = fig.add_subplot(111)
-            # sns.distplot(hots_score,hist=False,label='Topface',kde_kws={'linestyle':'-.'})
-            # sns.distplot(seqs_score,hist=False,label='Sequence',kde_kws={'linestyle':'--'})
-            sns.distplot(hots_score,hist=False,label='Topface',kde_kws={'marker':' '})
-            sns.distplot(seqs_score,hist=False,label='Sequence',kde_kws={'marker':'*'})
-            ax.set(xlabel='Similarity',ylabel='Frequency',title='WD40 Protein Topface and Sequence Similarity')
-            # h.figure.subplots_adjust(top=0.9,bottom=0.05,left=0.18,right=0.98)
-            plt.savefig(tem_pro+'_'+str(cutoff)+'hot_seq_similarity_dist.png',dpi=300)
+        # regression = linregress(seqs_score,hots_score)
+        # with open(fname+'_regression.txt','w') as w_f:
+            # 'slop,intercept,r-value,p-value,stderr'
+            # print >> w_f,';'.join(map(str,regression))
+
+        f,ax = plt.subplots()
+        fig = plt.figure(figsize=(5,4))
+        ax = fig.add_subplot(111)
+        # sns.distplot(hots_score,hist=False,label='Topface',kde_kws={'linestyle':'-.'})
+        # sns.distplot(seqs_score,hist=False,label='Sequence',kde_kws={'linestyle':'--'})
+        sns.distplot(hots_score,hist=False,label='Topface',kde_kws={'marker':' '})
+        sns.distplot(seqs_score,hist=False,label='Sequence',kde_kws={'marker':'*'})
+        ax.set(xlabel='Similarity',ylabel='Frequency',title='WD40 Protein Topface and Sequence Similarity')
+        # h.figure.subplots_adjust(top=0.9,bottom=0.05,left=0.18,right=0.98)
+        plt.savefig(fname+'hot_seq_similarity_dist.png',dpi=300)
+
 
 if __name__ == "__main__":
     main()
