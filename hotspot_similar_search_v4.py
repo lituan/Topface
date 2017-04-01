@@ -31,6 +31,7 @@ from xml.dom import minidom
 from Bio import pairwise2
 from Bio.SubsMat import MatrixInfo as matlist
 from multiprocessing import Pool
+import cPickle as pickle
 
 from wdsp import Wdsp
 
@@ -281,8 +282,13 @@ def plotlogo(seqs,filename):
 
     def plot_seqlogo(ax, pfm, charwidth=1.0, xlim='',**kwargs):
 
-        info_content = np.log2(
-            20) - pfm.apply(lambda p: (-p * np.log2(p)).sum(), axis=1)
+        def calculate_info(x):
+            if x > 0:
+                return -1.0*x*np.log2(x)
+            elif x == 0:
+                return 0
+        pfm_info = pfm.applymap(calculate_info)
+        info_content = np.log2(20) - pfm_info.apply(lambda x: (x).sum(),axis=1)
         matrix = pfm.mul(info_content, axis=0)
 
         seqlen = len(pfm)
