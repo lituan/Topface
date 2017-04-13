@@ -37,154 +37,116 @@ from multiprocessing import Pool
 from Bio import pairwise2
 from Bio.SubsMat import MatrixInfo as matlist
 from wdsp import Wdsp
-from blosum import BLOSUM62
 
 
-def needleman_wunsch(hot1, hot2):
-    seq_matrix = BLOSUM62
-    UP,LEFT,DIAG,INDEL = 1,2,0,-7
+BLOSUMS = [matlist.blosum30,matlist.blosum35,matlist.blosum40,matlist.blosum45, \
+           matlist.blosum50,matlist.blosum55,matlist.blosum60,matlist.blosum62, \
+           matlist.blosum65,matlist.blosum70,matlist.blosum75,matlist.blosum80, \
+           matlist.blosum85,matlist.blosum90,matlist.blosum95,matlist.blosum100]
 
-    def gap_penalty(i, j):
-        return -3 * abs(i - j)
+gap_open = -11
+gap_extend = -1.5
 
-    def score_hot(h1, h2):
-        return sum([seq_matrix[h11][h22] for h11, h22 in zip(h1, h2)])
+def gap_function(begin,length):
+    if length == 0:
+        return 0
+    elif length == 1:
+        return gap_open
+    else:
+        return gap_open + gap_extend*(length-1)
 
-    def needleman_wunsch_matrix(hot1, hot2, score_fun):
-
-        m, n = len(hot1), len(hot2)
-        score_matrix = np.zeros((m + 1, n + 1))
-        pointer_matrix = np.zeros((m + 1, n + 1), dtype=int)
-
-        for i in range(1, m + 1):
-            score_matrix[i, 0] = INDEL * i + (-3) * i * (i + 1) * 0.5
-        for j in range(1, n + 1):
-            score_matrix[0, j] = INDEL * j + (-3) * j * (j + 1) * 0.5
-
-        pointer_matrix[0, 1:] = LEFT
-        pointer_matrix[1:, 0] = UP
-
-        for i in range(1, m + 1):
-            for j in range(1, n + 1):
-                up = score_matrix[i - 1, j] + INDEL + gap_penalty(i, j)
-                left = score_matrix[i, j - 1] + INDEL + gap_penalty(i, j)
-                diag = score_matrix[i - 1, j - 1] + \
-                    score_fun(hot1[i - 1], hot2[j - 1])
-
-                max_score = max(up, left, diag)
-                if max_score == diag:
-                    pointer_matrix[i, j] = DIAG
-                elif max_score == up:
-                    pointer_matrix[i, j] = UP
-                elif max_score == left:
-                    pointer_matrix[i, j] = LEFT
-
-                score_matrix[i, j] = max_score
-        return score_matrix, pointer_matrix
-
-    def needleman_wunsch_trace(hot1, hot2, score_matrix, pointer_matrix):
-        align1 = []
-        align2 = []
-        m, n = len(hot1), len(hot2)
-
-        curr = pointer_matrix[m, n]
-        i, j = m, n
-        while (i > 0 or j > 0):
-            if curr == DIAG:
-                align1.append(hot1[i - 1])
-                align2.append(hot2[j - 1])
-                i -= 1
-                j -= 1
-            elif curr == LEFT:
-                align1.append('---')
-                align2.append(hot2[j - 1])
-                j -= 1
-            elif curr == UP:
-                align1.append(hot1[i - 1])
-                align2.append('---')
-                i -= 1
-            curr = pointer_matrix[i, j]
-
-        return align1[::-1], align2[::-1]
-
-    score_matrix, pointer_matrix = needleman_wunsch_matrix(
-        hot1, hot2, score_hot)
-    aligned_hot1, aligned_hot2 = needleman_wunsch_trace(
-        hot1, hot2, score_matrix, pointer_matrix)
-
-    return aligned_hot1,aligned_hot2
-
-def align_hot(p):
-    i1,i2,hot1,hot2 = p
-    aligned_hot1,aligned_hot2 = needleman_wunsch(hot1,hot2)
-    hot11 = ''.join(aligned_hot1)
-    hot22 = ''.join(aligned_hot2)
-    identity = 1.0 * sum([1 for h1, h2 in zip(hot11, hot22)
-                          if h1 == h2]) / len(hot11)
-
-    return i1,i2,float('{0:<4.2f}'.format(identity))
-
-def get_hot_similarity(hots):
-    hot_pairs = []
-    hot_num = len(hots)
-    for i in range(hot_num):
-        for j in range(hot_num):
-            hot_pairs.append((i,j,hots[i][1],hots[j][1]))
-    p = Pool(6)
-    results = p.map(align_hot,hot_pairs)
-    p.close()
-
-    scores = np.ones(shape=(hot_num,hot_num))
-    for i,j,s in results:
-        scores[i][j] = s
-        scores[j][i] = s
-
-    pair_scores = []
-    for i in range(hot_num):
-        for j in range(hot_num):
-            if j > i:
-                pair_scores.append(scores[i][j])
-    return pair_scores
-
-def align_seq(p):
-    s1,s2,seq1,seq2 = p
-    matrix = matlist.blosum62
-    gap_open = -10  # usual value
-    gap_extend = -0.5  # usual value
-
-    alns = pairwise2.align.globalds(seq1, seq2, matrix, gap_open, gap_extend)
-
-    seq1 = alns[0][0]
-    seq2 = alns[0][1]
-    identity = [1 for i, s in enumerate(seq1) if s == seq2[i]]
-    identity = 1.0 * len(identity)/ len(seq1)
-
-    return s1,s2,float('{0:<4.2f}'.format(identity))
+def wrap_match(blosum):
+    def match_function(triple1,triple2):
+        matrix = blosum
+        score = []
+        for a1,a2 in zip(triple1[0],triple2[0]):
+            if matrix.has_key((a1,a2)):
+                score.append(matrix[(a1,a2)])
+            else:
+                score.append(matrix[(a2,a1)])
+        return sum(score)
+    return match_function
 
 
-def get_seq_similarity(seqs):
-    seq_pairs = []
-    seq_num = len(seqs)
-    for i in range(seq_num):
-        for j in range(seq_num):
-            if j > i:
-                seq_pairs.append((i,j,seqs[i][1],seqs[j][1]))
-    p = Pool(6)
-    results = p.map(align_seq,seq_pairs)
-    p.close()
+def globalcc_triple(p):
 
-    scores = np.ones(shape=(seq_num,seq_num))
-    for i,j,s in results:
-        scores[i][j] = s
-        scores[j][i] = s
+    i1,i2,seq1,seq2 = p
+    seq1 = [[seqi] for seqi in seq1]
+    seq2 = [[seqi] for seqi in seq2]
 
-    pair_scores = []
-    for i in range(seq_num):
-        for j in range(seq_num):
-            if j > i:
-                pair_scores.append(scores[i][j])
-    return pair_scores
+    max_score = 0
+    max_identity = 0
+    max_align = [[],[]]
+    for blosum in BLOSUMS:
+        alns = pairwise2.align.globalcc(seq1, seq2,wrap_match(blosum),gap_function,gap_function,gap_char=['---'])
+        inner_score = 0
+        inner_identity = 0
+        inner_align = []
+        for aln in alns:
+            score = aln[2]
+            align1 = [a if not isinstance(a,list) else a[0] for a in aln[0] ]
+            align2 = [a if not isinstance(a,list) else a[0] for a in aln[1] ]
+            align1 = ''.join(align1)
+            align2 = ''.join(align2)
+            try:
+                identical_res = [1 for si,s in enumerate(align1) if s == align2[si]]
+            except:
+                print align1
+                print align2
+            identity = 1.0*len(identical_res)/len(align1)
+            align1 = [align1[i:i+3] for i in range(0,len(align1),3) ]
+            align2 = [align2[i:i+3] for i in range(0,len(align2),3) ]
+            if identity > max_identity:
+                inner_score = score
+                inner_identity = identity
+                inner_align = [align1,align2]
 
+        if inner_score > max_score:
+            max_score = inner_score
+            max_identity = inner_identity
+            max_align = inner_align
+
+    return i1,i2,max_score,max_identity,max_align[0],max_align[1]
+
+
+
+def globalds(p):
+
+    i1,i2,seq1,seq2 = p
+    gap_open = -10
+    gap_extend = -0.5
+
+    max_score = 0
+    max_identity = 0
+    max_align = [[],[]]
+    for blosum in BLOSUMS:
+        alns = pairwise2.align.globalds(seq1, seq2,blosum,gap_open,gap_extend)
+        inner_score = 0
+        inner_identity = 0
+        inner_align = []
+        for aln in alns:
+            score = aln[2]
+            align1 = aln[0]
+            align2 = aln[1]
+            identical_res = [1 for si,s in enumerate(align1) if s == align2[si]]
+            identity = 1.0*len(identical_res)/len(align1)
+            if score > inner_score:
+                inner_score = score
+                inner_identity = identity
+                inner_align = [align1,align2]
+
+        if inner_score > max_score:
+            max_score = inner_score
+            max_identity = inner_identity
+            max_align = inner_align
+
+    return i1,i2,max_score,max_identity,max_align[0],max_align[1]
+
+def top_seq_align(p):
+    i1,i2,hot1,hot2,seq1,seq2 = p
+    i1,i2,hot_max_score,hot_max_identity,hot_max_align1,hot_max_align2 = globalcc_triple([i1,i2,hot1,hot2])
+    i1,i2,seq_max_score,seq_max_identity,seq_max_align1,seq_max_align2 = globalds([i1,i2,seq1,seq2])
+    return i1,i2,[hot_max_score,hot_max_identity,hot_max_align1,hot_max_align2],[seq_max_score,seq_max_identity,seq_max_align1,seq_max_align2]
 
 
 def plot_scatter(seq_identity,topface_identity,filename):
@@ -265,8 +227,13 @@ def plotlogo(seqs,filename):
 
     def plot_seqlogo(ax, pfm, charwidth=1.0, xlim='',**kwargs):
 
-        info_content = np.log2(
-            20) - pfm.apply(lambda p: (-p * np.log2(p)).sum(), axis=1)
+        def calculate_info(x):
+            if x > 0:
+                return -1.0*x*np.log2(x)
+            elif x == 0:
+                return 0
+        pfm_info = pfm.applymap(calculate_info)
+        info_content = np.log2(20) - pfm_info.apply(lambda x: (x).sum(),axis=1)
         matrix = pfm.mul(info_content, axis=0)
 
         seqlen = len(pfm)
@@ -295,8 +262,9 @@ def plotlogo(seqs,filename):
         # ax.spines['top'].set_visible(False)
         # ax.spines['right'].set_visible(False)
         # set x y label
-        ax.set_xlabel('positions')
-        ax.set_ylabel('bits')
+        ax.set_xlabel('Positions')
+        ax.set_ylabel('bits',rotation=0)
+        ax.yaxis.set_label_coords(-0.03,0.98)
 
 
     seq_number = len(seqs)
@@ -309,7 +277,10 @@ def plotlogo(seqs,filename):
     pfm = [[pos.count(a) * 1.0 / seq_number for a in AA] for pos in positions]
     pfm = pd.DataFrame(pfm, columns=AA)
 
+    sns.set_context('paper',font_scale=1.5)
+    sns.set_style('white')
     fig = plt.figure()
+    sns.despine()
     ax = fig.add_subplot(111)
     ax.set_aspect(1)
     plot_seqlogo(ax, pfm)
@@ -318,38 +289,57 @@ def plotlogo(seqs,filename):
 
 def adjust_hots(hots):
     hots = sorted(hots,key=lambda x: len(x[1]),reverse=True)
-    new_hots = [hots[0]]
+    base_hot = hots[0]
+    adjusted = [base_hot]
     for hot in hots[1:]:
-        ah1,ah2 = needleman_wunsch(hots[0][1],hot[1])
-        new_hots.append([hot[0],ah2])
-    return new_hots
+        pro1,pro2,score,identity,align1,align2 = globalcc_triple([base_hot[0],hot[0],base_hot[1],hot[1]])
+        if score <= 0:
+            pass
+        else:
+            adjusted.append([pro2,align2])
+    return adjusted
 
 
 def main():
 
     fname = os.path.split(sys.argv[-1])[1].split('.')[0]
-    with open(sys.argv[-1]) as wdsp_f:
-        all_wdsp = Wdsp(wdsp_f)
-        all_hots = all_wdsp.hotspots
-        all_seqs = all_wdsp.seqs
 
-        hots = [[pro,hots] for pro,hots in all_hots.iteritems()]
-        seqs = [[pro,seq] for pro,seq in all_seqs.iteritems()]
-        # hots_score = get_hot_similarity(hots)
-        # seqs_score = get_seq_similarity(seqs)
-        # pickle.dump([hots_score,seqs_score],open('hots_seqs_score.pickle','w'))
+    with open(sys.argv[-1]) as wdsp_f:
+        wdsp = Wdsp(wdsp_f)
+        pros = wdsp.pros
+        hots = wdsp.hotspots
+        seqs = wdsp.seqs
+
+        parameters = []
+        for i1,pro1 in enumerate(pros):
+            for i2,pro2 in enumerate(pros):
+                parameters.append([pro1,pro2,hots[pro1],hots[pro2],seqs[pro1],seqs[pro2]])
+
+        p = Pool(6)
+        result = p.map(top_seq_align,parameters)
+        p.close()
+
+        # # result = []
+        # # for p in parameters:
+            # # r = top_seq_align(p)
+            # # result.append(r)
+
+        hots_score = [r[2][1] for r in result]
+        seqs_score = [r[3][1] for r in result]
+        pickle.dump([hots_score,seqs_score],open('hots_seqs_score.pickle','w'))
         hots_score,seqs_score = pickle.load(open('hots_seqs_score.pickle'))
 
-        # plot_scatter(seqs_score,hots_score,fname+'_scatter')
+        plot_scatter(seqs_score,hots_score,fname+'_scatter')
 
-        # hots = adjust_hots(hots)
-        # hots = [(pro,''.join(hot)) for pro,hot in hots]
-        # plotlogo(hots,fname+'_logo')
+        hots = [[pro,hot] for pro,hot in hots.iteritems()]
+        hots = adjust_hots(hots)
+        hots = [(pro,''.join(hot)) for pro,hot in hots]
+        plotlogo(hots,fname+'_logo')
 
-        # regression = linregress(seqs_score,hots_score)
-        # with open(fname+'_regression.txt','w') as w_f:
-            # 'slop,intercept,r-value,p-value,stderr'
-            # print >> w_f,';'.join(map(str,regression))
+        regression = linregress(seqs_score,hots_score)
+        with open(fname+'_regression.txt','w') as w_f:
+            'slop,intercept,r-value,p-value,stderr'
+            print >> w_f,';'.join(map(str,regression))
 
         f,ax = plt.subplots()
         fig = plt.figure(figsize=(5,4))
