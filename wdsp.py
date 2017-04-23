@@ -77,13 +77,13 @@ class Wdsp():
                 elif 4 <= len(blade[5]) <= 5 and blade[5][3] == 'D':
                     D_1 = blade[5][2]
                 elif 5 <= len(blade[5]) <= 5 and blade[5][4] == 'D':
-                    Di_1 = blade[5][3]
+                    D_1 = blade[5][3]
                 elif len(blade[5]) <= 5:
                     D_1 = blade[5][1]
                 elif len(blade[5]) <= 7:
                     D_1 = blade[5][0]
                 else:
-                    D_1 = '*'
+                    D_1 = 'X'
                 hotspot.append(R1 + R1_2 + D_1)
             self.hotspots[pro] = hotspot
 
