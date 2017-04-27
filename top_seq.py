@@ -130,7 +130,7 @@ def globalds(p):
             align2 = aln[1]
             identical_res = [1 for si,s in enumerate(align1) if s == align2[si]]
             identity = 1.0*len(identical_res)/len(align1)
-            if score > inner_score:
+            if identity > inner_identity:
                 inner_score = score
                 inner_identity = identity
                 inner_align = [align1,align2]
