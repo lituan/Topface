@@ -313,7 +313,8 @@ def main():
         parameters = []
         for i1,pro1 in enumerate(pros):
             for i2,pro2 in enumerate(pros):
-                parameters.append([pro1,pro2,hots[pro1],hots[pro2],seqs[pro1],seqs[pro2]])
+                if i2 > i1:
+                    parameters.append([pro1,pro2,hots[pro1],hots[pro2],seqs[pro1],seqs[pro2]])
 
         p = Pool(6)
         result = p.map(top_seq_align,parameters)
